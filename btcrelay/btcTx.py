@@ -1,104 +1,67 @@
 
+# contains the string to be deserialized/parse (currently a tx or blockheader)
+data gStr[]
+
+# index to gStr
 data pos
-data buf[]
 
+# contains a script, currently only used for outputScripts since input scripts are ignored
+data gScript[]
+
+# length of gScript
 data tmpScriptLen
-data tmpScriptArr[]  # 'id' is 2
 
 
-# copy 'arr' to global array with given 'id'
-def copyToArr(myarr:arr, size, id):
-    i = 0
-    while i < size:
-        if id == 2:
-            self.tmpScriptArr[i] = myarr[i]
-        i += 1
-
-# returns array
-def initFromArr(size, id):
-    myarr = array(size)
-    i = 0
-    # log(size)
-    # log(self.pos)
-    while i < size:
-        if id == 2:
-            myarr[i] = self.tmpScriptArr[i]
-        # log(myarr[i])
-        i += 1
-    return(myarr:arr)
-
-# copy 'arr' to global self.buf[]
-def copyToBuf(myarr:arr, size):
-    i = 0
-    while i < size:
-        self.buf[i] = myarr[i]
-        i += 1
-
-# return an array with the contents of self.buf[] starting for index self.pos
-def initFromBuf(size):
-    myarr = array(size)
-    offset = self.pos * 2
-    i = 0
-    # log(size)
-    # log(self.pos)
-    while i < size:
-        myarr[i] = self.buf[offset + i]
-        # log(myarr[i])
-        i += 1
-    return(myarr:arr)
-
-
-
-def txinFromBuf():
+def txinParse():
     prevTxId = self.readUnsignedBitsLE(256)
     outputIndex = readUInt32LE()
     # log(outputIndex)
 
     scriptSize = self.readVarintNum()
-    # log(scriptSize)
 
     if scriptSize > 0:
         dblSize = scriptSize*2
-        scriptArr = self.readSimple(scriptSize, outsz=dblSize)
+        self.readSimple(scriptSize, outsz=dblSize)  # return value is ignored
 
     seqNum = readUInt32LE()
     # log(seqNum)
 
 
-# returns satoshis and sets self.tmpScriptLen and self.tmpScriptArr
-def txoutFromBuf():
+# returns satoshis, scriptSize and sets self.tmpScriptLen
+# TODO eventually, self.tmpScriptLen can probably be removed and also returned by this function
+def txoutParse():
+
     satoshis = readUInt64LE()
-    log(satoshis)
+    # log(satoshis)
 
     scriptSize = self.readVarintNum()
-    log(scriptSize)
-    self.tmpScriptLen = scriptSize * 2
+    # log(scriptSize)
 
     if scriptSize > 0:
-        dblSize = scriptSize*2
-        scriptArr = self.readSimple(scriptSize, outsz=dblSize)
-        self.copyToArr(scriptArr, dblSize, 2)
+        self.tmpScriptLen = scriptSize * 2  # self.tmpScriptLen can probably be a return value
+        dblSize = self.tmpScriptLen  # needed because compiler complains that save() cannot use self.tmpScriptLen directly
+        scriptStr = self.readSimple(scriptSize, outsz=dblSize)
+        save(self.gScript[0], scriptStr, chars=dblSize)
 
-        # self.tmpScriptArr = scriptArr
-        #log(data=scriptArr)
-
-
-    # mcopy( , scriptArr, scriptSize)
-
-    return([satoshis, scriptSize], 2)
+    return([satoshis, scriptSize], items=2)
 
 
 # does not convert to numeric
 # make sure caller uses outsz=len*2
 def readSimple(len):
     size = len * 2
-    bb = self.initFromBuf(size, outsz=size)
+    offset = self.pos * 2
+    endIndex = offset + size
+
+    # TODO ideally, getting a slice of gStr would be done in 1 step, but Serpent limitation
+    tmpStr = load(self.gStr[0], chars=endIndex)
+    currStr = slice(tmpStr, chars=offset, chars=endIndex)
+
     self.pos += len # note: len NOT size
-    # log(data=bb)
-    return(bb:arr)
+    return(currStr:str)
 
 
-# tested via twip()
+
 def readVarintNum():
     first = readUInt8()
     if first == 0xfd:
@@ -125,8 +88,7 @@ def parseAndStoreHeader(rawHeader:str):
     nonce = readUInt32LE()
 
     # log(version)
-    # prevHashStr = self.a2str(prevHash, 64, outsz=64)
-    # log(datastr=prevHashStr)
+    # log(merkleRoot)
 
     res = self.callBtcRelayToStoreHeader(version, prevHash, merkleRoot, time, bits, nonce)
     return(res)
@@ -134,9 +96,8 @@ def parseAndStoreHeader(rawHeader:str):
 
 
 def storeRawBlockHeader(rawBlockHeader:str):
-    size = len(rawBlockHeader)
+    self.__setupForParsing(rawBlockHeader)
 
-    self.__setupForParsingTx(rawBlockHeader, size)
     res = self.parseAndStoreHeader(rawBlockHeader)
     return(res)
 
@@ -146,27 +107,17 @@ def logBlockchainHead():
     log(self.heaviestBlock)
 
 
-# unoptimized
-# to get the scriptArr, do this:
-# res = self.__getMetaForOutput(0, outsz=2)
-# dblSize = res[1]*2   # #res[1] is the scriptSize
-# scriptArr = self.__getOutScriptFromTmpArr(dblSize, 2, outsz=dblSize)
-# the (standard) output script should be of form 76a914 <hashAddr> 88ac
-def __getOutScriptFromTmpArr():
-    scriptArr = self.initFromArr(self.tmpScriptLen, 2, outsz=self.tmpScriptLen)  # 2 is the id for tmpScriptArr
-    return(scriptArr:arr)
-
-
 
 # returns an array [satoshis, outputScriptSize] and writes the
 # outputScript to self.tmpScriptArr, and outputScriptSize to self.tmpScriptLen
 #
 # this is needed until can figure out how a dynamically sized array can be returned from a function
 # instead of needing 2 functions, one that returns array size, then calling to get the actual array
-def getMetaForTxOut(rawTx:str, size, outNum):
-    self.__setupForParsingTx(rawTx, size)
+# TODO 2nd param size isn't needed anymore
+def parseTransaction(rawTx:str, size, outNum):
+    self.__setupForParsing(rawTx)
     meta = self.__getMetaForOutput(outNum, outsz=2)
-    return(meta)
+    return(meta, items=2)
 
 
 
@@ -182,41 +133,35 @@ def __getMetaForOutput(outNum):
 
     i = 0
     while i < numIns:
-        self.txinFromBuf()
+        self.txinParse()
         i += 1
 
     numOuts = self.readVarintNum()
 
     i = 0
     while i <= outNum:
-        satAndSize = self.txoutFromBuf(outsz=2)
+        satAndSize = self.txoutParse(outsz=2)
         i += 1
 
     return(satAndSize:arr)
 
 
-def __setupForParsingTx(rawTx:str, size):
-    bb = self.str2a(rawTx, size, outsz=size)
-    self.copyToBuf(bb, size)
+def __setupForParsing(hexStr:str):
     self.pos = 0
+    save(self.gStr[0], hexStr, chars=len(hexStr))
 
 
-def getScriptForTxOut(rawTx:str, size, outNum):
-    meta = self.getMetaForTxOut(rawTx, size, outNum, outsz=2)
-    scriptArr = self.__getOutScriptFromTmpArr(outsz=self.tmpScriptLen)
-    return(scriptArr:arr)
+def doCheckOutputScript(rawTx:str, size, outNum, expHashOfOutputScript):
+    self.parseTransaction(rawTx, size, outNum)  # TODO we are not using the return value, so conceivably self.tmpScriptLen could be returned here and global removed
+    cnt = self.tmpScriptLen
 
+    # TODO using load() until it can be figured out how to use gScript directly with sha256
+    myarr = load(self.gScript[0], items=(cnt/32)+1)  # if cnt is say 50, we want 2 chunks of 32bytes
+    # log(data=myarr)
 
-# assumes that scriptArr size is less than 2000
-def __checkOutputScript(rawTx:str, size, outNum, expHashOfOutputScript):
-    scriptArr = self.getScriptForTxOut(rawTx, size, outNum, outsz=2000)  # hardcoded outsz limit
-
-    scriptStr = self.a2str(scriptArr, self.tmpScriptLen, outsz=self.tmpScriptLen)
-    # log(datastr=scriptStr)
-    hash = sha256(scriptStr:str)
+    hash = sha256(myarr, chars=cnt)  # note: chars=cnt NOT items=...
     # log(hash)
     return(hash == expHashOfOutputScript)
-
 
 
 # this may not be needed so holding off on it
@@ -232,6 +177,12 @@ def __checkOutputScript(rawTx:str, size, outNum, expHashOfOutputScript):
 def readUnsignedBitsLE(bits):
     size = bits / 4
     offset = self.pos * 2
+    endIndex = offset + size
+
+    # TODO ideally, getting a slice of gStr would be done in 1 step, but Serpent limitation
+    tmpStr = load(self.gStr[0], chars=endIndex)
+    currStr = slice(tmpStr, chars=offset, chars=endIndex)
+
     result = 0
     j = 0
     while j < size:
@@ -241,7 +192,7 @@ def readUnsignedBitsLE(bits):
         else:
             i = j - 1
 
-        char = self.buf[offset + i]
+        char = getch(currStr, i)
         # log(char)
         if (char >= 97 && char <= 102):  # only handles lowercase a-f
             numeric = char - 87
@@ -276,27 +227,6 @@ macro readUInt32LE():
 
 macro readUInt64LE():
     self.readUnsignedBitsLE(64)
-
-
-# string to array
-def str2a(mystring:str, size):
-    myarr = array(size)
-    i = 0
-    while i < size:
-        myarr[i] = getch(mystring, i)
-        i += 1
-    return(myarr:arr)
-
-
-def a2str(myarr:arr, size):
-    mystr = string(size)
-
-    i = 0
-    while i < size:
-        setch(mystr, i, myarr[i])
-        i += 1
-
-    return(mystr:str)
 
 
 
