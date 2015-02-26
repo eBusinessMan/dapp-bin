@@ -39,11 +39,16 @@ def init():
     self.init333k()
 
 
-#TODO for testing only
 def init333k():
     self.heaviestBlock = 0x000000000000000008360c20a2ceff91cc8c4f357932377f48659b37bb86c759
     trustedBlock = self.heaviestBlock
     self.block[trustedBlock]._height = 333000
+    self.block[trustedBlock]._score = 1
+    ancLen = self.numAncestorDepths
+    i = 0
+    while i < ancLen:
+        self.block[trustedBlock]._ancestor[i] = trustedBlock
+        i += 1
 
 
 #TODO for testing only
@@ -54,6 +59,7 @@ def testingonlySetHeaviest(blockHash):
 def testingonlySetGenesis(blockHash):
     self.heaviestBlock = blockHash
     self.block[blockHash]._height = 1
+    self.block[blockHash]._score = 1  # genesis has score of 1, since score0 means block does NOT exist. see check in storeBlockHeader()
     ancLen = self.numAncestorDepths
     i = 0
     while i < ancLen:
@@ -62,11 +68,10 @@ def testingonlySetGenesis(blockHash):
 
 
 def storeBlockHeader(blockHeaderBinary:str):
-    # this check can be removed to allow older block headers to be added, but it
-    # may provide an attack vector where the contract can be spammed with valid
-    # headers that will not be used and simply take up memory storage
-    # if hashPrevBlock != self.heaviestBlock:  # special case for genesis prev block of 0 is not needed since self.heaviestBlock is 0 initially
-    #     return(0)
+    hashPrevBlock = getBytesLE(blockHeaderBinary, 32, 4)
+
+    if self.block[hashPrevBlock]._score == 0:  # score0 means block does NOT exist; genesis has score of 1
+        return(0)
 
     blockHash = self.fastHashBlock(blockHeaderBinary)
 
@@ -81,18 +86,15 @@ def storeBlockHeader(blockHeaderBinary:str):
     # TODO other validation of block?  eg timestamp
 
     if gt(blockHash, 0) && lt(blockHash, target):  #TODO should sgt and slt be used?
-
-        hashPrevBlock = getBytesLE(blockHeaderBinary, 32, 4)
-
         self.saveAncestors(blockHash, hashPrevBlock)
 
         save(self.block[blockHash]._blockHeader[0], blockHeaderBinary, chars=80) # or 160?
 
         self.block[blockHash]._score = self.block[hashPrevBlock]._score + difficulty
 
-        if gt(self.block[blockHash]._score, highScore):  #TODO use sgt?
+        if gt(self.block[blockHash]._score, self.highScore):  #TODO use sgt?
             self.heaviestBlock = blockHash
-            highScore = self.block[blockHash]._score
+            self.highScore = self.block[blockHash]._score
 
         return(self.block[blockHash]._height)
 
