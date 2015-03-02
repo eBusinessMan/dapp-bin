@@ -9,18 +9,13 @@ ETH_TO_SEND = 13
 # callers should probably explicitly check for a return value of 1 for success,
 # to protect against the possibility of send() returning non-zero error codes
 def processTransfer(txStr:str):
-    self.setupForParsing(txStr)
+    outputData = self.getFirst2Outputs(txStr, outitems=3)
 
-    satoshiAndScriptSize = self.getMetaForOutput(0, outitems=2)
-    cnt = satoshiAndScriptSize[1] * 2  # note: *2
+    numSatoshi = outputData[0]
 
-    numSatoshi = satoshiAndScriptSize[0]
-
-    log(3333)
-    log(numSatoshi)
-
+    out1scriptSize = outputData[1] * 2
     # TODO using load() until it can be figured out how to use gScript directly with sha256
-    scriptArr = load(self.gScript[0], items=(cnt/32)+1)  # if cnt is say 50, we want 2 chunks of 32bytes
+    scriptArr = load(self.gScript[0], items=(out1scriptSize/32)+1)  # if cnt is say 50, we want 2 chunks of 32bytes
     # log(data=scriptArr)
 
     #TODO strictly compare the script because an attacker may have a script that mentions
@@ -29,11 +24,8 @@ def processTransfer(txStr:str):
 
 
 
-    # 2nd output
-    self.pos = 0  # important, since we are avoiding a call to setupForParsing()
-    satoshiAndScriptSize = self.getMetaForOutput(1, outitems=2)
-    cnt = satoshiAndScriptSize[1] * 2  # note: *2
-    scriptArr = load(self.gScript[0], items=(cnt/32)+1)
+    out2scriptSize = outputData[2] * 2
+    scriptArr = load(self.g2ndScript[0], items=(out2scriptSize/32)+1)
 
     ethAddr = getEthAddr(scriptArr, 20, 6)
     log(ethAddr)  # exp 848063048424552597789830156546485564325215747452L

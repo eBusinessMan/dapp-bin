@@ -8,6 +8,9 @@ data pos
 # contains a script, currently only used for outputScripts since input scripts are ignored
 data gScript[]
 
+# used by getFirst2Outputs, for storing the 2nd script of a txoutput
+data g2ndScript[]
+
 
 def txinParse():
     prevTxId = self.readUnsignedBitsLE(256)
@@ -75,10 +78,10 @@ def readVarintNum():
 
 
 
-# precondition: setupForParsing() has been called
+# precondition: __setupForParsing() has been called
 # returns an array [satoshis, outputScriptSize] and writes the
 # outputScript to self.tmpScriptArr
-def getMetaForOutput(outNum):
+def __getMetaForOutput(outNum):
     version = readUInt32LE()
     # log(version)
     # log(self.pos)
@@ -101,14 +104,86 @@ def getMetaForOutput(outNum):
     return(satAndSize:arr)
 
 
-def setupForParsing(hexStr:str):
+
+def getFirst2Outputs(txStr:str):
+    self.__setupForParsing(txStr)
+    version = readUInt32LE()
+    # log(version)
+    # log(self.pos)
+    numIns = self.readVarintNum()
+    # log(numIns)
+    # log(self.pos)
+
+    i = 0
+    while i < numIns:
+        self.txinParse()
+        i += 1
+
+    numOuts = self.readVarintNum()
+
+    # i = 0
+    # while i <= outNum:
+    #     satAndSize = self.txoutParse(outsz=2)
+    #     i += 1
+
+    # 1st output
+    satoshis = readUInt64LE()
+    # log(satoshis)
+
+    scriptSize = self.readVarintNum()
+    # log(scriptSize)
+
+    if scriptSize > 0:
+        dblSize = scriptSize * 2
+        scriptStr = self.readSimple(scriptSize, outchars=dblSize)
+        save(self.gScript[0], scriptStr, chars=dblSize)
+
+    # return([satoshis, scriptSize], items=2)
+
+    out1stSatoshis = satoshis
+    out1stScriptSize = scriptSize
+
+
+    # 2nd output
+    satoshis = readUInt64LE()
+    # log(satoshis)
+
+    scriptSize = self.readVarintNum()
+    # log(scriptSize)
+
+    if scriptSize > 0:
+        dblSize = scriptSize * 2
+        scriptStr = self.readSimple(scriptSize, outchars=dblSize)
+        save(self.g2ndScript[0], scriptStr, chars=dblSize)
+
+    # return([satoshis, scriptSize], items=2)
+
+    # no need for out2ndSatoshis
+    out2ndScriptSize = scriptSize
+
+
+    return([out1stSatoshis, out1stScriptSize, out2ndScriptSize], items=3)
+
+
+# general function for getting a tx output; for something faster and
+# explicit, see getFirst2Outputs()
+#
+# this is needed until can figure out how a dynamically sized array can be
+# returned from a function instead of needing 2 functions, one that
+# returns array size, then calling to get the actual array
+def parseTransaction(rawTx:str, outNum):
+    self.__setupForParsing(rawTx)
+    meta = self.__getMetaForOutput(outNum, outsz=2)
+    return(meta, items=2)
+
+
+def __setupForParsing(hexStr:str):
     self.pos = 0  # important
     save(self.gStr[0], hexStr, chars=len(hexStr))
 
 
 def doCheckOutputScript(rawTx:str, size, outNum, expHashOfOutputScript):
-    self.setupForParsing(rawTx)
-    satoshiAndScriptSize = self.getMetaForOutput(outNum, outitems=2)
+    satoshiAndScriptSize = self.parseTransaction(rawTx, outNum, outitems=2)
     cnt = satoshiAndScriptSize[1] * 2  # note: *2
 
     # TODO using load() until it can be figured out how to use gScript directly with sha256
