@@ -1,3 +1,4 @@
+# This file is designed to parse general Bitcoin transactions
 
 # contains the string to be deserialized/parse (currently a tx or blockheader)
 data gStr[]
@@ -7,9 +8,6 @@ data pos
 
 # contains a script, currently only used for outputScripts since input scripts are ignored
 data gScript[]
-
-# used by getFirst2Outputs, for storing the 2nd script of a txoutput
-data g2ndScript[]
 
 
 def txinParse():
@@ -72,12 +70,6 @@ macro readVarintNum():
     $ret
 
 
-# heaviestBlock is in btcrelay.py
-# def logBlockchainHead():
-#     log(self.heaviestBlock)
-
-
-
 # precondition: __setupForParsing() has been called
 # returns an array [satoshis, outputScriptSize] and writes the
 # outputScript to self.tmpScriptArr
@@ -104,70 +96,8 @@ def __getMetaForOutput(outNum):
     return(satAndSize:arr)
 
 
-# return 0 if tx has less than 2 outputs
-# or other error, otherwise return array
-# of [out1stSatoshis, out1stScriptIndex, out2ndScriptSize]
-def getFirst2Outputs(txStr:str):
-    __setupForParsing(txStr)
-
-    self.pos += 4  # skip version
-
-    numIns = readVarintNum()
-    # log(numIns)
-    # log(self.pos)
-
-    i = 0
-    while i < numIns:
-        self.pos += 32  # skip prevTxId
-        self.pos += 4  # skip outputIndex
-
-        scriptSize = readVarintNum()
-        self.pos += scriptSize # skip reading the input scripts
-
-        self.pos += 4  # skip seqNum
-
-        i += 1
-
-    numOuts = readVarintNum()
-    if numOuts < 2:
-        return(0)
-
-
-    ###########################################################
-    # 1st output
-    out1stSatoshis = readUInt64LE()
-    # log(satoshis)
-
-    scriptSize = readVarintNum()
-    # log(scriptSize)
-
-    if scriptSize == 0:
-        return(0)
-
-    out1stScriptIndex = self.pos
-    self.pos += scriptSize  # script can be skipped since we return the index to it
-    ###########################################################
-
-
-
-    ###########################################################
-    # 2nd output
-    self.pos += 8  # skip satoshis
-
-    scriptSize = readVarintNum()
-    # log(scriptSize)
-
-    if scriptSize == 0:
-        return(0)
-
-    out2ndScriptIndex = self.pos
-    ###########################################################
-
-    return([out1stSatoshis, out1stScriptIndex, out2ndScriptIndex], items=3)
-
-
 # general function for getting a tx output; for something faster and
-# explicit, see getFirst2Outputs()
+# explicit, see btcSpecialTx.py
 #
 # this is needed until can figure out how a dynamically sized array can be
 # returned from a function instead of needing 2 functions, one that
@@ -194,14 +124,6 @@ def doCheckOutputScript(rawTx:str, size, outNum, expHashOfOutputScript):
     hash = sha256(myarr, chars=cnt)  # note: chars=cnt NOT items=...
     # log(hash)
     return(hash == expHashOfOutputScript)
-
-
-# this may not be needed so holding off on it
-# returns an array
-# [ version, numIns, ins[ [prevTx, outputIndex, scriptSize, script, seqNumber] ],
-# numOuts, outs[ [satoshis, scriptSize, script] ], locktime ]
-# def deserialize():
-
 
 
 # only handles lowercase a-f
