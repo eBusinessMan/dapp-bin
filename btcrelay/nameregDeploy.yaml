@@ -1,11 +1,12 @@
 -
   set:
-    BtcRelay: "02f653a05dc68a7df9a74c8eb9a50a15e98bed6e"
+    BtcRelay: "0x02f653a05dc68a7df9a74c8eb9a50a15e98bed6e"
+    OwnNameReg: "0xe4cb76e93975c86825ad67131672a5a81ceb0679"
 
--
-  deploy:
-    OwnNameReg:
-      contract: namereg.se
+# -
+#   deploy:
+#     OwnNameReg:
+#       contract: namereg.se
 
 -
   transact:
