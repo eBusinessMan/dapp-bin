@@ -1,0 +1,18 @@
+-
+  set:
+    BtcRelay: "02f653a05dc68a7df9a74c8eb9a50a15e98bed6e"
+
+-
+  deploy:
+    OwnNameReg:
+      contract: namereg.se
+
+-
+  transact:
+    OwnNameRegBtcRelay:
+      to: $OwnNameReg
+      fun_name: register
+      sig: ii
+      data:
+        - $BtcRelay
+        - BtcRelay
