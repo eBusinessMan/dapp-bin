@@ -59,17 +59,48 @@ var btcproof = require('btcproof');
 // curl -X POST --data '{"jsonrpc":"2.0","method":"eth_balanceAt","params":["0x205215f022af4950618730bcfae161b28397bc41"],"id":1}' http://localhost:8080
 
 
-// def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
+function callContract() {
+  console.log('@@@ in testNameReg')
+  var BtcRelayAddr = "0x02f653a05dc68a7df9a74c8eb9a50a15e98bed6e";
+  var OwnNameRegAddr = "0xe4cb76e93975c86825ad67131672a5a81ceb0679";
 
-// note this version of btcrelay does not getChainScore, or return blockChainHead...
-// 0x3432c7f5ca6552fca2f641575135578cb724eb1f
+  var nameRegAbi =
+  [{
+      "name": "get(int256)",
+      "type": "function",
+      "inputs": [{ "name": "key", "type": "int256" }],
+      "outputs": [{ "name": "out", "type": "int256" }]
+  },
+  {
+      "name": "register(int256,int256)",
+      "type": "function",
+      "inputs": [{ "name": "key", "type": "int256" }, { "name": "value", "type": "int256" }],
+      "outputs": [{ "name": "out", "type": "int256" }]
+  },
+  {
+      "name": "unregister(int256)",
+      "type": "function",
+      "inputs": [{ "name": "key", "type": "int256" }],
+      "outputs": [{ "name": "out", "type": "int256" }]
+  }];
+
+  var nreg = web3.eth.contract(OwnNameRegAddr, nameRegAbi);
+
+//   >>> 'BtcRelay'.encode('hex')
+// '42746352656c6179'
+  var res = nreg.call().get('0x42746352656c6179');
+  console.log('@@@@ res): ', res)
+  if (res) {
+    document.getElementById('result').innerText = res.toString(16);
+  }
+}
 
 
 // var gExchangeContractAddr = '0x'+'old';
 var gExchangeContractAddr = '0x'+'b8e116ddf8b8d451e04c5733a96a853b9036e883';
 var gOurBtcAddr = 'c398efa9c392ba6013c5e04ee729755ef7f58b32'
 
-function callContract() {
+function c333allContract() {
   console.log('@@@ in testDirectProcessTransfer')
   console.log('@@@ btcToEthAbi: ', btcToEthAbi, ' gExchangeContractAddr: ', gExchangeContractAddr)
 
