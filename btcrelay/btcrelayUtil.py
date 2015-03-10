@@ -1,3 +1,10 @@
+
+
+def shared():
+    LEFT_HASH = 1
+    RIGHT_HASH = 2
+
+
 def fastHashBlock(blockHeaderBinary:str):
     hash1 = sha256(blockHeaderBinary:str)
     hash2 = sha256(hash1)
@@ -5,6 +12,7 @@ def fastHashBlock(blockHeaderBinary:str):
     return(res)
 
 # return -1 if there's an error (eg called with incorrect params)
+# note: needs LEFT_HASH and RIGHT_HASH constants
 def computeMerkle(tx, proofLen, hash:arr, path:arr):
     resultHash = tx
     i = 0
