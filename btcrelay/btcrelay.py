@@ -76,7 +76,7 @@ def storeBlockHeader(blockHeaderBinary:str):
     if self.block[hashPrevBlock]._score == 0:  # score0 means block does NOT exist; genesis has score of 1
         return(0)
 
-    blockHash = self.fastHashBlock(blockHeaderBinary)
+    # blockHash = self.fastHashBlock(blockHeaderBinary)
 
     # log(333)
     # log(blockHash)
@@ -103,11 +103,11 @@ def storeBlockHeader(blockHeaderBinary:str):
 
     return(0)
 
-def fastHashBlock(blockHeaderBinary:str):
-    hash1 = sha256(blockHeaderBinary:str)
-    hash2 = sha256(hash1)
-    res = flip32Bytes(hash2)
-    return(res)
+# def fastHashBlock(blockHeaderBinary:str):
+#     hash1 = sha256(blockHeaderBinary:str)
+#     hash2 = sha256(hash1)
+#     res = flip32Bytes(hash2)
+#     return(res)
 
 # eg 0x6162 will be 0x6261
 macro flipBytes($n, $numByte):
@@ -187,11 +187,12 @@ macro getMerkleRoot($blockHash):
 
 
 def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
-    if self.within6Confirms(txBlockHash) || !self.inMainChain(txBlockHash):
+    if !self.inMainChain(txBlockHash):
+    # if self.within6Confirms(txBlockHash) || !self.inMainChain(txBlockHash):
         return(0)
 
-    merkle = self.computeMerkle(tx, proofLen, hash, path)
-    realMerkleRoot = getMerkleRoot(txBlockHash)
+    # merkle = self.computeMerkle(tx, proofLen, hash, path)
+    # realMerkleRoot = getMerkleRoot(txBlockHash)
 
     if merkle == realMerkleRoot:
         return(1)
@@ -216,41 +217,41 @@ def relayTx(txStr:str, txHash, proofLen, hash:arr, path:arr, txBlockHash, contra
 
 
 # return -1 if there's an error (eg called with incorrect params)
-def computeMerkle(tx, proofLen, hash:arr, path:arr):
-    resultHash = tx
-    i = 0
-    while i < proofLen:
-        proofHex = hash[i]
-        if path[i] == LEFT_HASH:
-            left = proofHex
-            right = resultHash
-        elif path[i] == RIGHT_HASH:
-            left = resultHash
-            right = proofHex
+# def computeMerkle(tx, proofLen, hash:arr, path:arr):
+#     resultHash = tx
+#     i = 0
+#     while i < proofLen:
+#         proofHex = hash[i]
+#         if path[i] == LEFT_HASH:
+#             left = proofHex
+#             right = resultHash
+#         elif path[i] == RIGHT_HASH:
+#             left = resultHash
+#             right = proofHex
+#
+#         resultHash = concatHash(left, right)
+#
+#         i += 1
+#
+#     if !resultHash:
+#         return(-1)
+#
+#     return(resultHash)
 
-        resultHash = concatHash(left, right)
 
-        i += 1
-
-    if !resultHash:
-        return(-1)
-
-    return(resultHash)
-
-
-def within6Confirms(txBlockHash):
-    blockHash = self.heaviestBlock
-
-    i = 0
-    while i < 6:
-        if txBlockHash == blockHash:
-            return(1)
-
-        # blockHash = self.block[blockHash]._prevBlock
-        blockHash = getPrevBlock(blockHash)
-        i += 1
-
-    return(0)
+# def within6Confirms(txBlockHash):
+#     blockHash = self.heaviestBlock
+#
+#     i = 0
+#     while i < 6:
+#         if txBlockHash == blockHash:
+#             return(1)
+#
+#         # blockHash = self.block[blockHash]._prevBlock
+#         blockHash = getPrevBlock(blockHash)
+#         i += 1
+#
+#     return(0)
 
 
 # little endian get $size bytes from $inStr with $offset
