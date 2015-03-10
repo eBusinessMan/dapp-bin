@@ -1,3 +1,4 @@
+# setBtcRelay() should be called immediately after creating this contract
 
 
 data owner

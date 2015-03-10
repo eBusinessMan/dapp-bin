@@ -1,3 +1,6 @@
+# setTrustedBtcRelay() should be called immediately after creating this contract
+
+
 inset('btcSpecialTx.py')
 
 data owner

@@ -1,15 +1,5 @@
-# Stored variables:
-#
-# Last known block
-# 10: version
-# 11: hashPrevBlock
-# 12: hashMerkleRoot
-# 13: time
-# 14: bits
-# 15: nonce
-# 16: blockHash / heaviestBlock
-# 17: score
-#
+# setRelayUtil() should be called immediately after creating this contract
+
 
 inset('btcChain.py')
 
