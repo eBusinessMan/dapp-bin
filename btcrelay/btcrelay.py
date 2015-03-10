@@ -25,6 +25,8 @@ data block[2^256](_height, _score, _ancestor[9], _blockHeader[])
 # records txs that have successfully claimed Ether (thus not allowed to re-claim)
 data txClaim[2^256]
 
+data owner
+
 extern relay_util: [computeMerkle:iiaa:i, fastHashBlock:s:i]
 data btcrelayUtil
 
@@ -42,20 +44,22 @@ def shared():
     RIGHT_HASH = 2
 
 def init():
+    self.owner = msg.sender
+
     # TODO what to init
-    self.init333k()
+    # self.init333k()
 
 
-def init333k():
-    self.heaviestBlock = 0x000000000000000008360c20a2ceff91cc8c4f357932377f48659b37bb86c759
-    trustedBlock = self.heaviestBlock
-    self.block[trustedBlock]._height = 333000
-    self.block[trustedBlock]._score = 1
-    ancLen = self.numAncestorDepths
-    i = 0
-    while i < ancLen:
-        self.block[trustedBlock]._ancestor[i] = trustedBlock
-        i += 1
+# def init333k():
+#     self.heaviestBlock = 0x000000000000000008360c20a2ceff91cc8c4f357932377f48659b37bb86c759
+#     trustedBlock = self.heaviestBlock
+#     self.block[trustedBlock]._height = 333000
+#     self.block[trustedBlock]._score = 1
+#     ancLen = self.numAncestorDepths
+#     i = 0
+#     while i < ancLen:
+#         self.block[trustedBlock]._ancestor[i] = trustedBlock
+#         i += 1
 
 
 #TODO for testing only
@@ -73,6 +77,11 @@ def testingonlySetGenesis(blockHash):
         self.block[blockHash]._ancestor[i] = blockHash
         i += 1
 
+def setRelayUtil(relayUtilAddr):
+    if msg.sender == self.owner:
+        self.btcrelayUtil = relayUtilAddr
+        return(1)
+    return(0)
 
 def storeBlockHeader(blockHeaderBinary:str):
     hashPrevBlock = getBytesLE(blockHeaderBinary, 32, 4)
