@@ -247,6 +247,9 @@ class TestTxVerify(object):
 
 
     def test7BlockValidTx(self):
+        RELAY_UTIL = self.s.abi_contract('btcrelayUtil.py', endowment=2000*self.ETHER)
+        self.c.setRelayUtil(RELAY_UTIL.address)
+        
         block100kPrev = 0x000000000002d01c1fccc21636b607dfd930d31d01c3a62104612a1719011250
         self.c.testingonlySetGenesis(block100kPrev)
 

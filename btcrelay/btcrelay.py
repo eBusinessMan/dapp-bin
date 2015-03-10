@@ -193,6 +193,9 @@ def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
         return(0)
 
     merkle = self.btcrelayUtil.computeMerkle(tx, proofLen, hash, path)
+    log(5555)
+    log(merkle)
+
     # realMerkleRoot = getMerkleRoot(txBlockHash)
 
     if merkle == realMerkleRoot:
