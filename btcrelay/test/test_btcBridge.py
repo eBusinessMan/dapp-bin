@@ -17,16 +17,16 @@ class TestBtcBridge(object):
     def setup_class(cls):
         cls.s = tester.state()
         tester.gas_limit = 2 * 10**6  # as of Mar 10 2015, the gas limit will be 3141592
-        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000*cls.ETHER)
+        cls.c = cls.s.abi_contract(cls.CONTRACT)
 
 
-        cls.BTC_RELAY = cls.s.abi_contract('btcrelay.py', endowment=2000*cls.ETHER)
+        cls.BTC_RELAY = cls.s.abi_contract('btcrelay.py')
         cls.c.setBtcRelay(cls.BTC_RELAY.address)
 
-        cls.RELAY_UTIL = cls.s.abi_contract('btcrelayUtil.py', endowment=2000*cls.ETHER)
+        cls.RELAY_UTIL = cls.s.abi_contract('btcrelayUtil.py')
         cls.BTC_RELAY.setRelayUtil(cls.RELAY_UTIL.address)
 
-        cls.BTC_ETH = cls.s.abi_contract('btc-eth.py', endowment=2000*cls.ETHER)
+        cls.BTC_ETH = cls.s.abi_contract('btc-eth.py', endowment=13*cls.ETHER)
         cls.BTC_ETH.setTrustedBtcRelay(cls.c.address)
 
 
