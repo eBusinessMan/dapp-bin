@@ -34,6 +34,14 @@ macro flip32Bytes($a):
             $i += 1
     $o
 
+macro concatHash($tx1, $tx2):
+    $left = flip32Bytes($tx1)
+    $right = flip32Bytes($tx2)
+
+    $hash1 = sha256([$left, $right], chars=64)
+    $hash2 = sha256([$hash1], items=1)
+
+    flip32Bytes($hash2)
 
 # unused for now
 # eg 0x6162 will be 0x6261

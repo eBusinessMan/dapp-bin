@@ -278,8 +278,10 @@ class TestBtcRelay(object):
 
 
     def testStoringHeaders(self):
+        RELAY_UTIL = self.s.abi_contract('btcrelayUtil.py', endowment=2000*self.ETHER)
+        self.c.setRelayUtil(RELAY_UTIL.address)
         self.storeGenesisBlock()
-        self.storeBlock1()
+        # self.storeBlock1()
 
 
 
