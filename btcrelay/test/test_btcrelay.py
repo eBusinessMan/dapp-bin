@@ -14,7 +14,11 @@ class TestBtcRelay(object):
 
     def setup_class(cls):
         cls.s = tester.state()
-        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000*cls.ETHER)
+        cls.c = cls.s.abi_contract(cls.CONTRACT)
+
+        cls.RELAY_UTIL = cls.s.abi_contract('btcrelayUtil.py')
+        cls.c.setRelayUtil(cls.RELAY_UTIL.address)
+
         cls.snapshot = cls.s.snapshot()
         cls.seed = tester.seed
 
@@ -119,7 +123,7 @@ class TestBtcRelay(object):
             nonce = 1 if (i in [4,5]) else 0
             blockHeaderBinary = self.getBlockHeaderBinary(version, hashPrevBlock, hashMerkleRoot, time, bits, nonce)
             res = self.c.storeBlockHeader(blockHeaderBinary)
-            hashPrevBlock = self.c.fastHashBlock(blockHeaderBinary)
+            hashPrevBlock = self.RELAY_UTIL.fastHashBlock(blockHeaderBinary)
 
             # print('@@@@ fake chain score: ' + str(self.c.getChainScore()))
             assert res == i+2
@@ -182,7 +186,7 @@ class TestBtcRelay(object):
             nonce = 1 if (i in [4,5]) else 0
             blockHeaderBinary = self.getBlockHeaderBinary(version, hashPrevBlock, hashMerkleRoot, time, bits, nonce)
             res = self.c.storeBlockHeader(blockHeaderBinary)
-            hashPrevBlock = self.c.fastHashBlock(blockHeaderBinary)
+            hashPrevBlock = self.RELAY_UTIL.fastHashBlock(blockHeaderBinary)
             assert res == i+2
 
         # testingonlySetHeaviest is needed because the difficulty from
@@ -278,13 +282,12 @@ class TestBtcRelay(object):
 
 
     def testStoringHeaders(self):
-        RELAY_UTIL = self.s.abi_contract('btcrelayUtil.py', endowment=2000*self.ETHER)
-        self.c.setRelayUtil(RELAY_UTIL.address)
         self.storeGenesisBlock()
         self.storeBlock1()
 
 
-
+    # TODO enable when init333k can be activated when gas limit is increased
+    @pytest.mark.skipif(True,reason='skip')
     def testStoreBlockHeader(self):
         self.c.init333k()
         version = 2
