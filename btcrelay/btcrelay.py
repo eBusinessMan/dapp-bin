@@ -177,7 +177,7 @@ macro targetFromBits($bits):
 
 macro getPrevBlock($blockHash):
     $tmpStr = load(self.block[$blockHash]._blockHeader[0], chars=80)
-    getBytesLE($tmpStr, 32, 4)
+    m_getBytesLE($tmpStr, 32, 4)
 
 
 macro getMerkleRoot($blockHash):
@@ -186,8 +186,7 @@ macro getMerkleRoot($blockHash):
 
 
 def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
-    if !self.inMainChain(txBlockHash):
-    # if self.within6Confirms(txBlockHash) || !self.inMainChain(txBlockHash):
+    if self.within6Confirms(txBlockHash) || !self.inMainChain(txBlockHash):
         return(0)
 
     merkle = self.btcrelayUtil.computeMerkle(tx, proofLen, hash, path)
@@ -220,19 +219,19 @@ def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
 
 
 
-# def within6Confirms(txBlockHash):
-#     blockHash = self.heaviestBlock
-#
-#     i = 0
-#     while i < 6:
-#         if txBlockHash == blockHash:
-#             return(1)
-#
-#         # blockHash = self.block[blockHash]._prevBlock
-#         blockHash = getPrevBlock(blockHash)
-#         i += 1
-#
-#     return(0)
+def within6Confirms(txBlockHash):
+    blockHash = self.heaviestBlock
+
+    i = 0
+    while i < 6:
+        if txBlockHash == blockHash:
+            return(1)
+
+        # blockHash = self.block[blockHash]._prevBlock
+        blockHash = getPrevBlock(blockHash)
+        i += 1
+
+    return(0)
 
 
 
