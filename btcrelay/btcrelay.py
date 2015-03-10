@@ -95,8 +95,7 @@ def storeBlockHeader(blockHeaderBinary:str):
     # log(blockHash)
 
     bits = self.btcrelayUtil.getBytesLE(blockHeaderBinary, 4, 72)
-    log(bits)
-    # target = targetFromBits(bits)
+    target = targetFromBits(bits)
 
     difficulty = DIFFICULTY_1 / target # https://en.bitcoin.it/wiki/Difficulty
 
