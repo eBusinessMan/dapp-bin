@@ -38,7 +38,6 @@ extern btc_eth: [processTransfer:s:i]
 
 def shared():
     DIFFICULTY_1 = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
-    TWO_POW_24 = 2 ^ 24
 
 
 def init():
@@ -168,10 +167,9 @@ macro shiftRightBytes($n, $x):
     div($n, 256^$x)
 
 
-# note: needs TWO_POW_24 constant
 # http://www.righto.com/2014/02/bitcoin-mining-hard-way-algorithms.html#ref3
 macro targetFromBits($bits):
-    $exp = div($bits, TWO_POW_24)
+    $exp = div($bits, 0x1000000)  # 2^24
     $mant = $bits & 0xffffff
     $target = $mant * shiftLeftBytes(1, ($exp - 3))
     $target
@@ -184,7 +182,7 @@ macro getPrevBlock($blockHash):
 
 macro getMerkleRoot($blockHash):
     $tmpStr = load(self.block[$blockHash]._blockHeader[0], chars=80)
-    self.btcrelayUtil.getBytesLE($tmpStr, 32, 36)
+    m_getBytesLE($tmpStr, 32, 36)
 
 
 def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
@@ -235,3 +233,23 @@ def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
 #         i += 1
 #
 #     return(0)
+
+
+
+# little endian get $size bytes from $inStr with $offset
+macro m_getBytesLE($inStr, $size, $offset):
+    $endIndex = $offset + $size
+
+    $result = 0
+    $exponent = 0
+    $j = $offset
+    while $j < $endIndex:
+        $char = getch($inStr, $j)
+        # log($char)
+        $result += $char * 256^$exponent
+        # log(result)
+
+        $j += 1
+        $exponent += 1
+
+    $result
