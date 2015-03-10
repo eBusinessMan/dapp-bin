@@ -39,7 +39,6 @@ extern btc_eth: [processTransfer:s:i]
 def shared():
     DIFFICULTY_1 = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
     TWO_POW_24 = 2 ^ 24
-    ZEROS = 0x0000000000000000000000000000000000000000000000000000000000000000
 
 
 def init():
@@ -82,6 +81,7 @@ def setRelayUtil(relayUtilAddr):
         return(1)
     return(0)
 
+# note: needs DIFFICULTY_1 constant
 def storeBlockHeader(blockHeaderBinary:str):
     hashPrevBlock = self.btcrelayUtil.getBytesLE(blockHeaderBinary, 32, 4)
 
@@ -168,6 +168,7 @@ macro shiftRightBytes($n, $x):
     div($n, 256^$x)
 
 
+# note: needs TWO_POW_24 constant
 # http://www.righto.com/2014/02/bitcoin-mining-hard-way-algorithms.html#ref3
 macro targetFromBits($bits):
     $exp = div($bits, TWO_POW_24)
