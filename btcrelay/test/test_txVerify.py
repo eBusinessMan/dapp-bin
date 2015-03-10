@@ -20,10 +20,10 @@ class TestTxVerify(object):
 
     def setup_class(cls):
         cls.s = tester.state()
-        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000*cls.ETHER)
+        cls.c = cls.s.abi_contract(cls.CONTRACT)
 
-        RELAY_UTIL = cls.s.abi_contract('btcrelayUtil.py')
-        cls.c.setRelayUtil(RELAY_UTIL.address)
+        cls.RELAY_UTIL = cls.s.abi_contract('btcrelayUtil.py')
+        cls.c.setRelayUtil(cls.RELAY_UTIL.address)
 
         cls.snapshot = cls.s.snapshot()
         cls.seed = tester.seed
@@ -205,13 +205,13 @@ class TestTxVerify(object):
 
     def randomTxMerkleCheck(self, blocknum):
         [txHash, siblings, path, txBlockHash, pybtctoolMerkle] = randomMerkleProof(blocknum, -1, True)
-        merkle = self.c.computeMerkle(txHash, len(siblings), siblings, path)
-        merkle %= 2 ** 256
+        merkle = self.RELAY_UTIL.computeMerkle(txHash, len(siblings), siblings, path)
+        merkle %= 2**256
         assert merkle == pybtctoolMerkle
 
     @slow
     def testRandomTxMerkleCheck(self):
-        self.randomTxMerkleCheck(100000)
+        self.randomTxMerkleCheck(347066)
 
 
     @pytest.mark.skipif(True,reason='skip')
