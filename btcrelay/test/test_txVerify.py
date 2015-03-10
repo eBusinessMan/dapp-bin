@@ -249,7 +249,7 @@ class TestTxVerify(object):
     def test7BlockValidTx(self):
         RELAY_UTIL = self.s.abi_contract('btcrelayUtil.py', endowment=2000*self.ETHER)
         self.c.setRelayUtil(RELAY_UTIL.address)
-        
+
         block100kPrev = 0x000000000002d01c1fccc21636b607dfd930d31d01c3a62104612a1719011250
         self.c.testingonlySetGenesis(block100kPrev)
 
@@ -272,8 +272,9 @@ class TestTxVerify(object):
         hashes = [u'8c14f0db3df150123e6f3dbbf30f8b955a8249b62ac1d1ff16284aefa3d06d87', u'fff2525b8931402dd09222c50775608f75787bd2b87e56995a7bdd30f79702c4', u'6359f0868171b1d194cbee1af2f16ea598ae8fad666d9b012c8ed2b79a236ec4', u'e9a66845e05d5abc0ad04ec80f774a7e585c6e8db975962d069a522137b80c1d']
         [txHash, siblings, path, txBlockHash] = makeMerkleProof(header, hashes, 3)
 
-        res = self.c.verifyTx(txHash, len(siblings), siblings, path, txBlockHash)
-        assert res == 1  # adjust according to numBlock and the block that the tx belongs to
+        res = self.c.verifyTx(txHash, len(siblings), siblings, path, txBlockHash, profiling=True)
+        print('GAS: ', res['gas'])
+        assert res['output'] == 1  # adjust according to numBlock and the block that the tx belongs to
 
 
     def test30BlockValidTx(self):

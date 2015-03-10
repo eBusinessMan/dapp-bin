@@ -184,7 +184,7 @@ macro getPrevBlock($blockHash):
 
 macro getMerkleRoot($blockHash):
     $tmpStr = load(self.block[$blockHash]._blockHeader[0], chars=80)
-    getBytesLE($tmpStr, 32, 36)
+    self.btcrelayUtil.getBytesLE($tmpStr, 32, 36)
 
 
 def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
@@ -193,10 +193,9 @@ def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
         return(0)
 
     merkle = self.btcrelayUtil.computeMerkle(tx, proofLen, hash, path)
-    log(5555)
-    log(merkle)
-
-    # realMerkleRoot = getMerkleRoot(txBlockHash)
+    realMerkleRoot = getMerkleRoot(txBlockHash)
+    log(9999)
+    log(realMerkleRoot)
 
     if merkle == realMerkleRoot:
         return(1)
@@ -209,15 +208,15 @@ def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
 #
 # returns the value of processTransfer().  callers should explicitly
 # check for a value of 1, since other non-zero values could be error codes
-def relayTx(txStr:str, txHash, proofLen, hash:arr, path:arr, txBlockHash, contract):
-    if self.txClaim[txHash] == 0 && self.verifyTx(txHash, proofLen, hash, path, txBlockHash) == 1:
-
-        res = contract.processTransfer(txStr)
-        self.txClaim[txHash] = res
-
-        return(res)
-        # return(call(contract, tx))
-    return(0)
+# def relayTx(txStr:str, txHash, proofLen, hash:arr, path:arr, txBlockHash, contract):
+#     if self.txClaim[txHash] == 0 && self.verifyTx(txHash, proofLen, hash, path, txBlockHash) == 1:
+#
+#         res = contract.processTransfer(txStr)
+#         self.txClaim[txHash] = res
+#
+#         return(res)
+#         # return(call(contract, tx))
+#     return(0)
 
 
 
