@@ -25,6 +25,10 @@ data block[2^256](_height, _score, _ancestor[9], _blockHeader[])
 # records txs that have successfully claimed Ether (thus not allowed to re-claim)
 data txClaim[2^256]
 
+extern relay_util: [computeMerkle:iiaa:i, fastHashBlock:s:i]
+data btcrelayUtil
+
+
 extern btc_eth: [processTransfer:s:i]
 
 
@@ -76,13 +80,13 @@ def storeBlockHeader(blockHeaderBinary:str):
     if self.block[hashPrevBlock]._score == 0:  # score0 means block does NOT exist; genesis has score of 1
         return(0)
 
-    # blockHash = self.fastHashBlock(blockHeaderBinary)
+    blockHash = self.btcrelayUtil.fastHashBlock(blockHeaderBinary)
 
     # log(333)
     # log(blockHash)
 
-    bits = getBytesLE(blockHeaderBinary, 4, 72)
-    target = targetFromBits(bits)
+    # bits = getBytesLE(blockHeaderBinary, 4, 72)
+    # target = targetFromBits(bits)
 
     difficulty = DIFFICULTY_1 / target # https://en.bitcoin.it/wiki/Difficulty
 
@@ -103,11 +107,6 @@ def storeBlockHeader(blockHeaderBinary:str):
 
     return(0)
 
-# def fastHashBlock(blockHeaderBinary:str):
-#     hash1 = sha256(blockHeaderBinary:str)
-#     hash2 = sha256(hash1)
-#     res = flip32Bytes(hash2)
-#     return(res)
 
 # eg 0x6162 will be 0x6261
 macro flipBytes($n, $numByte):
@@ -122,13 +121,6 @@ macro flipBytes($n, $numByte):
 
     $b
 
-macro flip32Bytes($a):
-    $o = 0
-    with $i = 0:
-        while $i < 32:
-            mstore8(ref($o) + $i, byte(31 - $i, $a))
-            $i += 1
-    $o
 
 # fast string flip bytes
 # macro vflip($x, $L):
@@ -191,7 +183,7 @@ def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
     # if self.within6Confirms(txBlockHash) || !self.inMainChain(txBlockHash):
         return(0)
 
-    # merkle = self.computeMerkle(tx, proofLen, hash, path)
+    merkle = self.btcrelayUtil.computeMerkle(tx, proofLen, hash, path)
     # realMerkleRoot = getMerkleRoot(txBlockHash)
 
     if merkle == realMerkleRoot:
@@ -216,27 +208,7 @@ def relayTx(txStr:str, txHash, proofLen, hash:arr, path:arr, txBlockHash, contra
     return(0)
 
 
-# return -1 if there's an error (eg called with incorrect params)
-# def computeMerkle(tx, proofLen, hash:arr, path:arr):
-#     resultHash = tx
-#     i = 0
-#     while i < proofLen:
-#         proofHex = hash[i]
-#         if path[i] == LEFT_HASH:
-#             left = proofHex
-#             right = resultHash
-#         elif path[i] == RIGHT_HASH:
-#             left = resultHash
-#             right = proofHex
-#
-#         resultHash = concatHash(left, right)
-#
-#         i += 1
-#
-#     if !resultHash:
-#         return(-1)
-#
-#     return(resultHash)
+
 
 
 # def within6Confirms(txBlockHash):
