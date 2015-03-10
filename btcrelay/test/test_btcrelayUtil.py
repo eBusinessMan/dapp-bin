@@ -37,8 +37,8 @@ class TestBtcRelayUtil(object):
         path[1] = RIGHT_HASH
 
         r = self.c.computeMerkle(tx, proofLen, hash, path)
+        r %= 2**256
         expMerkle = 0xf3e94742aca4b5ef85488dc37c06c3282295ffec960994b2c0d5ac2a25a95766
-        r = r % 2**256
         assert r == expMerkle
 
 
