@@ -299,10 +299,3 @@ class TestBtcRelay(object):
         bhBinary = blockHeaderStr.decode('hex')
 
         assert blockNumber == self.c.storeBlockHeader(bhBinary)
-
-    def testFastHashBlock(self):
-        blockHeaderStr = "0100000050120119172a610421a6c3011dd330d9df07b63616c2cc1f1cd00200000000006657a9252aacd5c0b2940996ecff952228c3067cc38d4885efb5a4ac4247e9f337221b4d4c86041b0f2b5710"
-        bhBinary = blockHeaderStr.decode('hex')
-        res = self.c.fastHashBlock(bhBinary)
-        exp = 0x000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506
-        assert res == exp
