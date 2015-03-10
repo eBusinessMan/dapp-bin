@@ -3,7 +3,8 @@
 
 data owner
 
-extern btc_relay: [verifyTx:iiaai:i]
+# TODO remove unused and testingonly externs (check that tests files that include btcBridge still pass when this extern is updated)
+extern btc_relay: [getBlockchainHead:_:i, getChainScore:_:i, inMainChain:i:i, saveAncestors:ii:_, setRelayUtil:i:i, storeBlockHeader:s:i, testingonlySetGenesis:i:_, testingonlySetHeaviest:i:_, verifyTx:iiaai:i, within6Confirms:i:i]
 data btcRelayAddr
 
 extern btc_eth: [processTransfer:s:i]

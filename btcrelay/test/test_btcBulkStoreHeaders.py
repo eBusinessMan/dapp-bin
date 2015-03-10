@@ -14,8 +14,21 @@ class TestBtcBulkStoreHeaders(object):
     ETHER = 10 ** 18
 
     def setup_class(cls):
+        tester.gas_limit = 3 * 10**6  # as of Mar 10 2015, the gas limit will be 3141592
         cls.s = tester.state()
-        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000*cls.ETHER)
+        cls.c = cls.s.abi_contract(cls.CONTRACT)
+
+
+        cls.BTC_RELAY = cls.s.abi_contract('btcrelay.py')
+        cls.c.setBtcRelay(cls.BTC_RELAY.address)
+
+        cls.RELAY_UTIL = cls.s.abi_contract('btcrelayUtil.py')
+        cls.BTC_RELAY.setRelayUtil(cls.RELAY_UTIL.address)
+
+        cls.BTC_ETH = cls.s.abi_contract('btc-eth.py')
+        cls.BTC_ETH.setTrustedBtcRelay(cls.c.address)
+
+
         cls.snapshot = cls.s.snapshot()
         cls.seed = tester.seed
 
@@ -25,7 +38,7 @@ class TestBtcBulkStoreHeaders(object):
 
 
     def testTx1In300K(self):
-        hh = self.bulkStore10From300K()
+        hh = self.bulkStore7From300K()
 
         txIndex = 1
         # block300k tx[1] 7301b595279ece985f0c415e420e425451fcf7f684fcce087ba14d10ffec1121
@@ -38,7 +51,7 @@ class TestBtcBulkStoreHeaders(object):
     # there's a veryslow dynamic test that calls randomTxVerify in test_txVerify.py
     @slow
     def testRelay300K(self):
-        hh = self.bulkStore10From300K()
+        hh = self.bulkStore7From300K()
 
         txIndex = 3
         txStr = '0100000002acf17f885a83c7a221ab64fda59bce530b95a131a16eff3470a6cccac6b2d312000000006b483045022100a71b9fe6d94918b436e7b949f6c49407f25e4e39fc7fe20cf22e787def43cb5602200b52e999c0e75eaef28bd97609465ff41d7dad99e06b219997c3df452251e903012102e7d08484e6c4c26bd2a3aabab09c65bbdcb4a6bba0ee5cf7008ef19b9540f818ffffffff71d4a7c7fe372cb80d7170b96a8a2b8c5a0b0015f7877f50e6709fc78f1766ae010000006b483045022100c82137d106505ab32febf6ba3a607fe62cd4a4ab96fef67bf4e379405c40836302202cf6d85f4a0e811728870d649ceb47b24986599f0f09c252e9b62c94df6a2bb5012102e7d08484e6c4c26bd2a3aabab09c65bbdcb4a6bba0ee5cf7008ef19b9540f818ffffffff0200743ba40b0000001976a91429a158767437cd82ccf4bd3e34ecd16c267fc36388ace093a7ca000000001976a9140b31340661bb7a4165736ca2fc6509164b1dc96488ac00000000'
@@ -68,12 +81,13 @@ class TestBtcBulkStoreHeaders(object):
         self.checkRelay(txStr, txIndex, btcAddr, hh)
 
 
-    def bulkStore10From300K(self):
+    # store 7 uses 2931201 gas.  store 10 will be OOG
+    def bulkStore7From300K(self):
         startBlockNum = 300000
-        numBlock = 10
+        numBlock = 7
 
         block300kPrev = 0x000000000000000067ecc744b5ae34eebbde14d21ca4db51652e4d67e155f07e
-        self.c.testingonlySetGenesis(block300kPrev)
+        self.BTC_RELAY.testingonlySetGenesis(block300kPrev)
 
         strings = ""
         i = 1
@@ -113,10 +127,8 @@ class TestBtcBulkStoreHeaders(object):
 
         # verify the proof and then hand the proof to the btc-eth contract, which will check
         # the tx outputs and send ether as appropriate
-        BTC_ETH = self.s.abi_contract('btc-eth.py', endowment=2000*self.ETHER)
-        assert BTC_ETH.setTrustedBtcRelay(self.c.address) == 1
-        assert BTC_ETH.testingonlySetBtcAddr(btcAddr) == 1
-        res = self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, BTC_ETH.address, profiling=True)
+        assert self.BTC_ETH.testingonlySetBtcAddr(btcAddr) == 1
+        res = self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, self.BTC_ETH.address, profiling=True)
 
         indexOfBtcAddr = txStr.find(format(btcAddr, 'x'))
         ethAddrBin = txStr[indexOfBtcAddr+68:indexOfBtcAddr+108].decode('hex') # assumes ether addr is after btcAddr
@@ -128,7 +140,7 @@ class TestBtcBulkStoreHeaders(object):
         assert res['output'] == 1  # ether was transferred
 
         # re-claim disallowed
-        assert 0 == self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, BTC_ETH.address)
+        assert 0 == self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, self.BTC_ETH.address)
 
 
 
@@ -141,7 +153,7 @@ class TestBtcBulkStoreHeaders(object):
         numBlock = 60
 
         block300kPrev = 0x000000000000000067ecc744b5ae34eebbde14d21ca4db51652e4d67e155f07e
-        self.c.testingonlySetGenesis(block300kPrev)
+        self.BTC_RELAY.testingonlySetGenesis(block300kPrev)
 
         nLoop = 2
         j = 0
@@ -177,7 +189,7 @@ class TestBtcBulkStoreHeaders(object):
         numBlock = 60
 
         block300kPrev = 0x000000000000000067ecc744b5ae34eebbde14d21ca4db51652e4d67e155f07e
-        self.c.testingonlySetGenesis(block300kPrev)
+        self.BTC_RELAY.testingonlySetGenesis(block300kPrev)
 
         strings = ""
         i = 1
@@ -208,7 +220,7 @@ class TestBtcBulkStoreHeaders(object):
     @pytest.mark.veryslow
     def testBulkStore7(self):
         block100kPrev = 0x000000000002d01c1fccc21636b607dfd930d31d01c3a62104612a1719011250
-        self.c.testingonlySetGenesis(block100kPrev)
+        self.BTC_RELAY.testingonlySetGenesis(block100kPrev)
 
         headers = [
             "0100000050120119172a610421a6c3011dd330d9df07b63616c2cc1f1cd00200000000006657a9252aacd5c0b2940996ecff952228c3067cc38d4885efb5a4ac4247e9f337221b4d4c86041b0f2b5710",
