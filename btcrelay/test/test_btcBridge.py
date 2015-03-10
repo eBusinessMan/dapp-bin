@@ -16,6 +16,7 @@ class TestBtcBridge(object):
 
     def setup_class(cls):
         cls.s = tester.state()
+        tester.gas_limit = 2 * 10**6  # as of Mar 10 2015, the gas limit will be 3141592
         cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000*cls.ETHER)
         cls.snapshot = cls.s.snapshot()
         cls.seed = tester.seed
@@ -31,6 +32,9 @@ class TestBtcBridge(object):
         BTC_RELAY = self.s.abi_contract('btcrelay.py', endowment=2000*self.ETHER)
         self.c.setBtcRelay(BTC_RELAY.address)
 
+        RELAY_UTIL = self.s.abi_contract('btcrelayUtil.py', endowment=2000*self.ETHER)
+        BTC_RELAY.setRelayUtil(RELAY_UTIL.address)
+
         BTC_ETH = self.s.abi_contract('btc-eth.py', endowment=2000*self.ETHER)
         BTC_ETH.setTrustedBtcRelay(self.c.address)
 
@@ -38,7 +42,7 @@ class TestBtcBridge(object):
         # store block headers
         #
         block100kPrev = 0x000000000002d01c1fccc21636b607dfd930d31d01c3a62104612a1719011250
-        self.c.testingonlySetGenesis(block100kPrev)
+        BTC_RELAY.testingonlySetGenesis(block100kPrev)
 
         headers = [
             "0100000050120119172a610421a6c3011dd330d9df07b63616c2cc1f1cd00200000000006657a9252aacd5c0b2940996ecff952228c3067cc38d4885efb5a4ac4247e9f337221b4d4c86041b0f2b5710",
@@ -51,7 +55,7 @@ class TestBtcBridge(object):
         ]
         blockHeaderBinary = map(lambda x: x.decode('hex'), headers)
         for i in range(7):
-            res = self.c.storeBlockHeader(blockHeaderBinary[i])
+            res = BTC_RELAY.storeBlockHeader(blockHeaderBinary[i])
             assert res == i+2
 
         # tx[1] fff2525b8931402dd09222c50775608f75787bd2b87e56995a7bdd30f79702c4
