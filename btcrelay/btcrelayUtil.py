@@ -26,6 +26,28 @@ def computeMerkle(tx, proofLen, hash:arr, path:arr):
 
     return(resultHash)
 
+
+def getBytesLE(inStr:str, size, offset):
+    return(m_getBytesLE(inStr, size, offset))
+
+# little endian get $size bytes from $inStr with $offset
+macro m_getBytesLE($inStr, $size, $offset):
+    $endIndex = $offset + $size
+
+    $result = 0
+    $exponent = 0
+    $j = $offset
+    while $j < $endIndex:
+        $char = getch($inStr, $j)
+        # log($char)
+        $result += $char * 256^$exponent
+        # log(result)
+
+        $j += 1
+        $exponent += 1
+
+    $result
+
 macro flip32Bytes($a):
     $o = 0
     with $i = 0:
@@ -42,6 +64,8 @@ macro concatHash($tx1, $tx2):
     $hash2 = sha256([$hash1], items=1)
 
     flip32Bytes($hash2)
+
+
 
 # unused for now
 # eg 0x6162 will be 0x6261

@@ -27,7 +27,7 @@ data txClaim[2^256]
 
 data owner
 
-extern relay_util: [computeMerkle:iiaa:i, fastHashBlock:s:i]
+extern relay_util: [computeMerkle:iiaa:i, fastHashBlock:s:i, getBytesLE:sii:i]
 data btcrelayUtil
 
 
@@ -84,7 +84,7 @@ def setRelayUtil(relayUtilAddr):
     return(0)
 
 def storeBlockHeader(blockHeaderBinary:str):
-    hashPrevBlock = getBytesLE(blockHeaderBinary, 32, 4)
+    hashPrevBlock = self.btcrelayUtil.getBytesLE(blockHeaderBinary, 32, 4)
 
     if self.block[hashPrevBlock]._score == 0:  # score0 means block does NOT exist; genesis has score of 1
         return(0)
@@ -94,7 +94,7 @@ def storeBlockHeader(blockHeaderBinary:str):
     # log(333)
     # log(blockHash)
 
-    bits = getBytesLE(blockHeaderBinary, 4, 72)
+    bits = self.btcrelayUtil.getBytesLE(blockHeaderBinary, 4, 72)
     log(bits)
     # target = targetFromBits(bits)
 
@@ -234,22 +234,3 @@ def relayTx(txStr:str, txHash, proofLen, hash:arr, path:arr, txBlockHash, contra
 #         i += 1
 #
 #     return(0)
-
-
-# little endian get $size bytes from $inStr with $offset
-macro getBytesLE($inStr, $size, $offset):
-    $endIndex = $offset + $size
-
-    $result = 0
-    $exponent = 0
-    $j = $offset
-    while $j < $endIndex:
-        $char = getch($inStr, $j)
-        # log($char)
-        $result += $char * 256^$exponent
-        # log(result)
-
-        $j += 1
-        $exponent += 1
-
-    $result
