@@ -22,19 +22,11 @@ data highScore
 # note: _ancestor[9]
 data block[2^256](_height, _score, _ancestor[9], _blockHeader[])
 
-# records txs that have successfully claimed Ether (thus not allowed to re-claim)
-data txClaim[2^256]
-
 data owner
 
 extern relay_util: [computeMerkle:iiaa:i, fastHashBlock:s:i, getBytesLE:sii:i]
 data btcrelayUtil
 
-
-extern btc_eth: [processTransfer:s:i]
-
-
-#self.block.blockHeader[]
 
 def shared():
     DIFFICULTY_1 = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
@@ -198,24 +190,6 @@ def verifyTx(tx, proofLen, hash:arr, path:arr, txBlockHash):
         return(1)
     else:
         return(0)
-
-
-#TODO txHash can eventually be computed (dbl sha256 then flip32Bytes) when
-# txStr becomes txBinary
-#
-# returns the value of processTransfer().  callers should explicitly
-# check for a value of 1, since other non-zero values could be error codes
-# def relayTx(txStr:str, txHash, proofLen, hash:arr, path:arr, txBlockHash, contract):
-#     if self.txClaim[txHash] == 0 && self.verifyTx(txHash, proofLen, hash, path, txBlockHash) == 1:
-#
-#         res = contract.processTransfer(txStr)
-#         self.txClaim[txHash] = res
-#
-#         return(res)
-#         # return(call(contract, tx))
-#     return(0)
-
-
 
 
 
