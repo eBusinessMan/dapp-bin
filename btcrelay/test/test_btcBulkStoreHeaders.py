@@ -25,7 +25,7 @@ class TestBtcBulkStoreHeaders(object):
         cls.RELAY_UTIL = cls.s.abi_contract('btcrelayUtil.py')
         cls.BTC_RELAY.setRelayUtil(cls.RELAY_UTIL.address)
 
-        cls.BTC_ETH = cls.s.abi_contract('btc-eth.py')
+        cls.BTC_ETH = cls.s.abi_contract('btc-eth.py', endowment=13*cls.ETHER)
         cls.BTC_ETH.setTrustedBtcRelay(cls.c.address)
 
 
