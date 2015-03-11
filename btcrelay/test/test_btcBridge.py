@@ -41,6 +41,24 @@ class TestBtcBridge(object):
 
     # tx[1] of block 100K sends enough BTC, so ether should be transferred
     def testRelayTx(self):
+        [res, ethAddrBin, userEthBalance] = self.relayTx1OfBlock100K(self.BTC_ETH.address)
+
+        expEtherBalance = 13
+        assert userEthBalance == expEtherBalance
+        assert res['output'] == 1  # ether was transferred
+
+
+    def testEtherEndowmentInsufficient(self):
+        btcEthContract = self.s.abi_contract('btc-eth.py', endowment=1)  # 1 wei
+        btcEthContract.setTrustedBtcRelay(self.c.address)
+
+        [res, ethAddrBin, userEthBalance] = self.relayTx1OfBlock100K(btcEthContract.address)
+
+        assert userEthBalance == 0
+        assert res['output'] == 0  # ether was NOT transferred
+
+
+    def relayTx1OfBlock100K(self, btcEthAddr):
         #
         # store block headers
         #
@@ -71,17 +89,14 @@ class TestBtcBridge(object):
 
         # verify the proof and then hand the proof to the btc-eth contract, which will check
         # the tx outputs and send ether as appropriate
-        res = self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, self.BTC_ETH.address, profiling=True)
+        res = self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, btcEthAddr, profiling=True)
         print('GAS: '+str(res['gas']))
 
         ethAddrBin = txStr[-52:-12].decode('hex')
         userEthBalance = self.s.block.get_balance(ethAddrBin)
         print('USER ETH BALANCE: '+str(userEthBalance))
-        expEtherBalance = 13
-        assert userEthBalance == expEtherBalance
-        assert res['output'] == 1  # ether was transferred
 
-        assert 0 == self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, self.BTC_ETH.address)  # re-claim disallowed
+        return [res, ethAddrBin, userEthBalance]
 
 
     # tx[2] of block 100K does NOT send enough BTC, so ether should NOT be transferred
@@ -123,7 +138,6 @@ class TestBtcBridge(object):
         assert userEthBalance == expEtherBalance
         assert res == 0  # ether was NOT transferred
 
-    # TODO testEtherEndowmentInsufficient
 
     def testEachConfirmation(self):
         # tx[1] fff2525b8931402dd09222c50775608f75787bd2b87e56995a7bdd30f79702c4
@@ -167,3 +181,6 @@ class TestBtcBridge(object):
                 assert res == 1  # ether was transferred
             else:
                 assert 0 == res == userEthBalance
+
+        # re-claim disallowed
+        assert 0 == self.c.relayTx(txStr, txHash, len(siblings), siblings, path, txBlockHash, self.BTC_ETH.address)
