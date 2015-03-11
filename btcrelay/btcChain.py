@@ -61,15 +61,15 @@ def inMainChain(txBlockHash):
     return(blockHash == txBlockHash)
 
 
-def logAnc(blockHash):
-    log(11111)
-    log(blockHash)
-    i = 0
-    while i < self.numAncestorDepths:
-        anc = self.block[blockHash]._ancestor[i]
-        log(anc)
-        i += 1
-    log(22222)
+# def logAnc(blockHash):
+#     log(11111)
+#     log(blockHash)
+#     i = 0
+#     while i < self.numAncestorDepths:
+#         anc = self.block[blockHash]._ancestor[i]
+#         log(anc)
+#         i += 1
+#     log(22222)
 
 
 def getBlockchainHead():

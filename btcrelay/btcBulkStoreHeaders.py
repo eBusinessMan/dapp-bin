@@ -1,4 +1,4 @@
-inset('btcrelay.py')
+inset('btcBridge.py')
 
 def bulkStoreHeader(headersBinary:str, count):
     HEADER_SIZE = 80
@@ -9,7 +9,7 @@ def bulkStoreHeader(headersBinary:str, count):
     i = 0
     while i < count:
         currHeader = slice(headersBinary, chars=offset, chars=endIndex)
-        res = self.storeBlockHeader(currHeader)
+        res = self.btcRelayAddr.storeBlockHeader(currHeader)
 
         offset += HEADER_SIZE
         endIndex += HEADER_SIZE
