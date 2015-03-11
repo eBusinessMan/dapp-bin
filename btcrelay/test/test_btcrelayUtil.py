@@ -42,9 +42,17 @@ class TestBtcRelayUtil(object):
         assert r == expMerkle
 
 
-    def testFastHashBlock(self):
+    def testHashBlock100K(self):
         blockHeaderStr = "0100000050120119172a610421a6c3011dd330d9df07b63616c2cc1f1cd00200000000006657a9252aacd5c0b2940996ecff952228c3067cc38d4885efb5a4ac4247e9f337221b4d4c86041b0f2b5710"
         bhBinary = blockHeaderStr.decode('hex')
         res = self.c.fastHashBlock(bhBinary)
         exp = 0x000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506
+        assert res == exp
+
+
+    def testHashBlock300K(self):
+        blockHeaderStr = "020000007ef055e1674d2e6551dba41cd214debbee34aeb544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470d"
+        bhBinary = blockHeaderStr.decode('hex')
+        res = self.c.fastHashBlock(bhBinary)
+        exp = 0x000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254
         assert res == exp
