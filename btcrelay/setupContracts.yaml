@@ -1,0 +1,67 @@
+# Deploy contracts
+-
+  deploy:
+    BtcRelayUtil:
+      contract: btcrelayUtil.py
+      gas: 500000
+      wait: True
+
+-
+  deploy:
+    BtcRelay:
+      contract: btcrelay.py
+      gas: 500000
+      wait: True
+
+-
+  deploy:
+    BtcBridge:
+      contract: btcBridge.py
+      gas: 500000
+      wait: True
+
+# Set dependencies
+-
+  transact:
+    SetUtilForRelay:
+      gas: 500000
+      to: $BtcRelay
+      fun_name: setRelayUtil
+      sig: i
+      data:
+        - $BtcRelayUtil
+      wait: True
+
+-
+  transact:
+    SetRelayForBridge:
+      gas: 500000
+      to: $BtcBridge
+      fun_name: setBtcRelay
+      sig: i
+      data:
+        - $BtcRelay
+      wait: True
+
+
+
+# -
+#   deploy:
+#     BtcEth:
+#       contract: btc-eth.py
+#       gas: 2000000
+#       endowment: 64
+#       wait: True
+#
+# A part of btcrelay was split into btcBridge, that's why
+# this is named SetTrustedBtcRelay instead of SetTrustedBtcBridge
+# -
+#   transact:
+#     SetTrustedBtcRelay:
+#       gas: 1000000
+#       to: $BtcEth
+#       fun_name: setTrustedBtcRelay
+#       sig: i
+#       data:
+#         - $BtcBridge
+#       wait: True
