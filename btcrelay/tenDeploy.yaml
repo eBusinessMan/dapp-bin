@@ -1,18 +1,20 @@
 -
   set:
-    BtcRelay: "0xe05679e2489b1910dce5cfe68dcc83a2d68ecbde"
+    BtcRelay: "0xbb8438a90bac1b0bf21673cd4a3be325744eeed7"
 
 -
   deploy:
     BridgeWithBulkStore:
       contract: btcBulkStoreHeaders.py
       gas: 500000
+      gas_price: 10000000000000
       wait: True
 
 -
   transact:
     SetRelayForBridge:
       gas: 500000
+      gas_price: 10000000000000
       to: $BridgeWithBulkStore
       fun_name: setBtcRelay
       sig: i
@@ -24,6 +26,8 @@
 -
   transact:
     TestingOnlySetGenesis:
+      gas: 500000
+      gas_price: 10000000000000
       to: $BtcRelay
       fun_name: testingonlySetGenesis
       sig: i
@@ -35,7 +39,7 @@
   transact:
     Store10Headers:
       gas: 500000
-      gas_price: 10
+      gas_price: 10000000000000
       to: $BridgeWithBulkStore
       fun_name: bulkStoreHeader
       sig: si

@@ -1,3 +1,11 @@
+
+util: 0x0aa9f59ff9efd942f3d5ed80b8d108117a68fd9f
+relay: 0xbb8438a90bac1b0bf21673cd4a3be325744eeed7
+bulk: 0x60a078bab3d046859bb321a58f2b8570a3b14c03
+
+bridge: 0x879a68b10879becf11d8a059cd782b0a0b0ae1e1
+
+
 Notes during development (initially to keep track of address of contracts)
 
 02f653a05dc68a7df9a74c8eb9a50a15e98bed6e is sampleContractA.py
