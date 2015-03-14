@@ -61,7 +61,7 @@
       wait: True
 
 
-# The binary data has 10 headers, but we only store 7 otherwise OOG
+# The binary data has 10 headers from block 300K, but we only store 7 otherwise OOG
 # Storing 7 currently uses 3M - 21,000 gas.
 -
   transact:

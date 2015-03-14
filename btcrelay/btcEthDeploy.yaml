@@ -1,32 +1,40 @@
 # this deploys the btc-eth exchange contract alone
 
-# TODO you must update the address of BtcRelay to whatever your BtcRelay was mined to
+# A part of btcrelay was split into btcBridge, that's why
+# this is named SetTrustedBtcRelay instead of SetTrustedBtcBridge
+#
+# TODO you must update the address of BtcRelay to whatever your
+# BtcBridge (or bulkBridge) was mined to
 - set:
-    BtcRelay: "0xa7ac34d64107553f64181ce53b4917da6bede380"
+    BtcBridge: "0x205215f022af4950618730bcfae161b28397bc41"
 
 -
   deploy:
     BtcEth:
       contract: btc-eth.py
-      gas: 100000
+      gas: 3000000
+      gas_price: 10000000000000
       endowment: 64
       wait: True
 -
   transact:
     SetTrustedBtcRelay:
-      gas: 100000
+      gas: 3000000
+      gas_price: 10000000000000
       to: $BtcEth
       fun_name: setTrustedBtcRelay
       sig: i
       data:
-        - $BtcRelay
+        - $BtcBridge
       wait: True
 
-# for testing only
+
+# for testing only.  The btc addr is set to tx1 of block 300K
 -
   transact:
     SetBtcAddr:
-      gas: 100000
+      gas: 3000000
+      gas_price: 10000000000000
       to: $BtcEth
       fun_name: testingonlySetBtcAddr
       sig: i
