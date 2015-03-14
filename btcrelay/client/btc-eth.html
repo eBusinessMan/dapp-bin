@@ -134,12 +134,20 @@ function callContract() {
   // for btcRelayAbi.js, since btcrelay was split up, need to
   // use bridge/bulk such as serpent mk_full_signature ~/projects/eth/dapp-bin/btcrelay/btcBulkStoreHeaders.py > client/js/btcRelayAbi.js
   // when the Serpent is updated
-  //
   // for relayTx, bethAddress is address of bridge/bulkBridge contract
   // for verifyTx, bethAddress is address of btcrelay contract
-  // var bethAddress = '0x'+'205215f022af4950618730bcfae161b28397bc41';
-  var bethAddress = '0x'+'cf2d91e4a42568344d6222f08003db3104f3cddd';
-  var contract = web3.eth.contract(bethAddress, btcRelayAbi);
+  var bethAddress;
+  var abiToUse;
+  if (verifyTx) {
+    bethAddress = '0x'+'cf2d91e4a42568344d6222f08003db3104f3cddd';
+    abiToUse = btcRelayAbi
+  }
+  else {
+    bethAddress = '0x'+'205215f022af4950618730bcfae161b28397bc41';
+    // TODO abiToUse
+  }
+
+  var contract = web3.eth.contract(bethAddress, abiToUse);
   console.log('@@@@ contract: ', contract)
 
   // block300K tx1
