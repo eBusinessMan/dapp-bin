@@ -135,8 +135,10 @@ function callContract() {
   // use bridge/bulk such as serpent mk_full_signature ~/projects/eth/dapp-bin/btcrelay/btcBulkStoreHeaders.py > client/js/btcRelayAbi.js
   // when the Serpent is updated
   //
-  // bethAddress is address of bridge/bulkBridge contract
-  var bethAddress = '0x'+'205215f022af4950618730bcfae161b28397bc41';
+  // for relayTx, bethAddress is address of bridge/bulkBridge contract
+  // for verifyTx, bethAddress is address of btcrelay contract
+  // var bethAddress = '0x'+'205215f022af4950618730bcfae161b28397bc41';
+  var bethAddress = '0x'+'cf2d91e4a42568344d6222f08003db3104f3cddd';
   var contract = web3.eth.contract(bethAddress, btcRelayAbi);
   console.log('@@@@ contract: ', contract)
 
@@ -233,6 +235,9 @@ $(function() {
   $('#exchBal').text(ethBalance);
 
   // $('#transHex').val('fff2525b8931402dd09222c50775608f75787bd2b87e56995a7bdd30f79702c4');
+
+  $('#transHex').val('7301b595279ece985f0c415e420e425451fcf7f684fcce087ba14d10ffec1121');
+
 
   $('#btn-get-tx').click(getTxInfo);
 
