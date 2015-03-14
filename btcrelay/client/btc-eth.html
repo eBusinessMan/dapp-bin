@@ -26,8 +26,7 @@
 
 <script type="text/javascript">
 var web3 = require('web3');
-    web3.setProvider(new web3.providers.HttpSyncProvider());
-    // web3.setProvider(new web3.providers.HttpSyncProvider("http://localhost:8545"))
+    web3.setProvider(new web3.providers.HttpProvider('http://localhost:8080'));  // port 8545 for Mist
 
 // web3.setProvider(new web3.providers.AutoProvider());
 // web3.setProvider(new web3.providers.WebSocketProvider('ws://localhost:40404/eth'));
