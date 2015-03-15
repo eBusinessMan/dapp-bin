@@ -182,11 +182,12 @@ function callContract() {
   if (verifyTx) {
     var startTime = Date.now();
     var res = contract.call().verifyTx(txHash, proofLen, merkleSibling, merklePath, txBlockHash);
+    // var res = contract.sendTransaction().verifyTx(txHash, proofLen, merkleSibling, merklePath, txBlockHash);
     var endTime = Date.now();
     var durationSec = (endTime - startTime) / 1000;
     console.log('@@@@ verifyTx res: ', res, ' duration: ', durationSec)
     document.getElementById('result').innerText = res.toString(10) + "    " + durationSec+ "secs";
-    return
+    return;
   }
 
 
