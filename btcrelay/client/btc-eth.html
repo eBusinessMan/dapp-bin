@@ -28,7 +28,7 @@
   <script src="./js/btcproof.js"></script>
 
 <script type="text/javascript">
-var web3 = require('web3');
+var web3 = require('ethereum.js');
     web3.setProvider(new web3.providers.HttpProvider('http://localhost:8080'));  // port 8545 for Mist
 
 // web3.setProvider(new web3.providers.AutoProvider());
@@ -155,7 +155,8 @@ function callContract() {
     abiToUse = btcBridgeAbi;
   }
 
-  var contract = web3.eth.contract(bethAddress, abiToUse);
+  var BridgeOrRelayContract = web3.eth.contract(abiToUse);
+  var contract = new BridgeOrRelayContract(bethAddress);
   console.log('@@@@ contract: ', contract)
 
   // block300K tx1
@@ -184,8 +185,9 @@ function callContract() {
 
 
   if (verifyTx) {
+    console.log('@@@@ going to call() verifyTx')
     var startTime = Date.now();
-    var res = contract.call({from:gCoinbase}).verifyTx(txHash, proofLen, merkleSibling, merklePath, txBlockHash);
+    var res = contract.call({from:gCoinbase, gas: 3000000}).verifyTx(txHash, proofLen, merkleSibling, merklePath, txBlockHash);
     // var res = contract.sendTransaction().verifyTx(txHash, proofLen, merkleSibling, merklePath, txBlockHash);
     var endTime = Date.now();
     var durationSec = (endTime - startTime) / 1000;
