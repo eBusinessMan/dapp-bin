@@ -75,6 +75,24 @@ var gOurBtcAddr = '61cf5af7bb84348df3fd695672e53c7d5b3f3db9'  // tx1 of block300
 var gCoinbase = web3.eth.coinbase;
 
 
+function callContract() {
+  var abi = [{
+    "name": "foo(string,int256)",
+    "type": "function",
+    "inputs": [{ "name": "mystr", "type": "bytes" }, { "name": "num", "type": "int256" }],
+    "outputs": [{ "name": "out", "type": "int256" }]
+  }];
+
+  var addr = '0xe0187a952d7ffb6d2825d47be52cd2fe2027d68f';
+  var contract = web3.eth.contract(addr, abi);
+  var res = contract.call({from:gCoinbase, gas:500000}).foo('ab', 3);
+
+  console.log('@@@@ foo res: ', res)
+  document.getElementById('result').innerText = res.toString(10);
+}
+
+
+
 // This requires that blocks are from block100K (instead of 300K)
 // this should no longer work because processTransfer can only
 // be called by the (trusted) BtcRelay contract
@@ -125,7 +143,7 @@ function c44allContract() {
 var gMerkleProof;
 var gBlockHashOfTx;
 var gRawTx;
-function callContract() {
+function c5555allContract() {
   console.log('@@@ in callContract')
   console.log('@@@ btcRelayAbi: ', btcRelayAbi)
   console.log('@@@ btcBridgeAbi: ', btcBridgeAbi)
