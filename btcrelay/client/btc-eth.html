@@ -75,7 +75,7 @@ var gOurBtcAddr = '61cf5af7bb84348df3fd695672e53c7d5b3f3db9'  // tx1 of block300
 var gCoinbase = web3.eth.coinbase;
 
 
-function callContract() {
+function c22allContract() {
   var abi = [{
     "name": "foo(string,int256)",
     "type": "function",
@@ -107,11 +107,10 @@ function callContract() {
 }
 
 
-
-// This requires that blocks are from block100K (instead of 300K)
+// This requires that blocks are from block300K
 // this should no longer work because processTransfer can only
 // be called by the (trusted) BtcRelay contract
-function c44allContract() {
+function callContract() {
   console.log('@@@ in testDirectProcessTransfer')
   console.log('@@@ btcToEthAbi: ', btcToEthAbi, ' gExchangeContractAddr: ', gExchangeContractAddr)
 
@@ -119,8 +118,11 @@ function c44allContract() {
   var addrExchContract = gExchangeContractAddr;
   var exch = web3.eth.contract(addrExchContract, btcToEthAbi);
 
-  var txHex = '0100000001032e38e9c0a84c6046d687d10556dcacc41d275ec55fc00779ac88fdf357a187000000008c493046022100c352d3dd993a981beba4a63ad15c209275ca9470abfcd57da93b58e4eb5dce82022100840792bc1f456062819f15d33ee7055cf7b5ee1af1ebcc6028d9cdb1c3af7748014104f46db5e9d61a9dc27b8d64ad23e7383a4e6ca164593c2527c038c0857eb67ee8e825dca65046b82c9331586c82e0fd1f633f25f87c161bc6f8a630121df2b3d3ffffffff0200e32321000000001976a914c398efa9c392ba6013c5e04ee729755ef7f58b3288ac000fe208010000001976a914948c765a6914d43f2a7ac177da2c2f6b52de3d7c88ac00000000';
-  var res = exch.call().processTransfer(txHex);
+  var txHex = '01000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000';
+
+  // 'from' should be the address of the bulk/bridge contract (instead of coinbase)
+  var from = '0x4a2c77dbf6eee7f957bfe70d2c5a3335010e4390';
+  var res = exch.call({from:from, gas:500000}).processTransfer(txHex);
   // var res = exch.transact().processTransfer(txHex);
   console.log('@@@@ res.toString(10): ', res.toString(10))
   if (res) {
@@ -184,7 +186,8 @@ function c5555allContract() {
     abiToUse = btcRelayAbi;
   }
   else {
-    bethAddress = '0x'+'205215f022af4950618730bcfae161b28397bc41';
+    // bethAddress = '0x'+'205215f022af4950618730bcfae161b28397bc41';
+    bethAddress = '0x4a2c77dbf6eee7f957bfe70d2c5a3335010e4390';  // Go
     abiToUse = btcBridgeAbi;
   }
 
