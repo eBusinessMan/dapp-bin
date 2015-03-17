@@ -3,7 +3,7 @@
     BridgeWithBulkStore: "0x4a2c77dbf6eee7f957bfe70d2c5a3335010e4390"
     BtcEth: "0x80163d499eaacd37277cb1e00dd3090b3dd74d29"
 
-
+# exp result: fd4ed114ef85d350d6d40ed3f6dc23743f8f99c4 gets ether
 -
   transact:
     RelayTx:

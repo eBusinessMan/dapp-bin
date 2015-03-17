@@ -83,12 +83,27 @@ function callContract() {
     "outputs": [{ "name": "out", "type": "int256" }]
   }];
 
-  var addr = '0xe0187a952d7ffb6d2825d47be52cd2fe2027d68f';
+  var addr = '0xcdbb08538b8f548b1ad9a1abffd35fb423e91c37';
   var contract = web3.eth.contract(addr, abi);
-  var res = contract.call({from:gCoinbase, gas:500000}).foo('ab', 3);
 
-  console.log('@@@@ foo res: ', res)
-  document.getElementById('result').innerText = res.toString(10);
+  var useCall;
+  // useCall = true;
+
+  if (useCall) {
+    var res = contract.call({from:gCoinbase, gas:500000}).foo('ab', 3);
+    console.log('@@@@ foo res: ', res)
+    document.getElementById('result').innerText = res.toString(10);
+  }
+  else {
+    var sendObj = contract.sendTransaction({from:gCoinbase, gas:500000}, function(err, result) {
+      var res = result;
+      console.log('@@@@ foo res: ', res)
+      document.getElementById('result').innerText = res.toString(10);
+    });
+
+    sendObj.foo('bc', 3);
+  }
+
 }
 
 
@@ -150,7 +165,7 @@ function c5555allContract() {
   console.log('@@@ gCoinbase: ', gCoinbase)
 
   var verifyTx;
-  verifyTx = true;  // if commented, it will call relayTx
+  // verifyTx = true;  // if commented, it will call relayTx
 
 
   // TODO don't forget to update the ABI (btcRelayAbi.js & btcEthAbi.js)
@@ -223,12 +238,15 @@ function c5555allContract() {
   var exchangeContractAddr = new BigNumber(gExchangeContractAddr);
 
   var startTime = Date.now();
-  var res = contract.sendTransaction({from:gCoinbase}).relayTx(txHex, txHash, proofLen, merkleSibling, merklePath, txBlockHash, exchangeContractAddr);
-  var endTime = Date.now();
-  var durationSec = (endTime - startTime) / 1000;
-  console.log('@@@@ relayTx res: ', res, ' duration: ', durationSec)
-  document.getElementById('result').innerText = res.toString(10) + "    " + durationSec+ "secs";
+  var sendObj = contract.sendTransaction({from:gCoinbase, gas: 3000000}, function(err, result) {
+      var res = result;
+      var endTime = Date.now();
+      var durationSec = (endTime - startTime) / 1000;
+      console.log('@@@@ relayTx res: ', res, ' duration: ', durationSec)
+      document.getElementById('result').innerText = res.toString(10) + "    " + durationSec+ "secs";
+  });
 
+  sendObj.relayTx(txHex, txHash, proofLen, merkleSibling, merklePath, txBlockHash, exchangeContractAddr)
 }
 
 
