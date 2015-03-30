@@ -1,3 +1,15 @@
+Mar 30
+./eth/eth -j -m on -v 9 -s <secret> -a 29d33c02a200937995e632c4597b4dca8e503978 -r poc-9.ethdev.com:30303
+block 35525 is around the start of storing some headers
+
+Mar 27
+AZ
+poc9 block 33807 has the ether transfer (13 wei)
+block 33793 and nearby has the set up
+contracts are at:
+gRelayAddr = '0xb8e116ddf8b8d451e04c5733a96a853b9036e883';  // CPP
+gExchangeContractAddr = '0x4d02a1132621fc80cd36eceeefaa11133ab842cd'; // CPP
+
 
 ethereum.js fix128 branch was used, commit 2618bae
 
