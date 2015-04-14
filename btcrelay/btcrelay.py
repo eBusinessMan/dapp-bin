@@ -81,10 +81,9 @@ def setPreGenesis(blockHash):
 # store a Bitcoin block header that must be provided in
 # binary format 'blockHeaderBinary'
 def storeBlockHeader(blockHeaderBinary:str):
-    hashPrevBlock = getBytesLE(blockHeaderBinary, 32, 4)
+    hashPrevBlock = flip32Bytes(~calldataload(40))  # 36 (header start) + 4 (offset for hashPrevBlock)
 
-    if self.block[hashPrevBlock]._score == 0:  # score0 means block does NOT exist; genesis has score of 1
-        return(0)
+    assert self.block[hashPrevBlock]._score  # score0 means block does NOT exist; genesis has score of 1
 
     blockHash = self.fastHashBlock(blockHeaderBinary)
 
@@ -210,10 +209,7 @@ def within6Confirms(txBlockHash):
 
 # Bitcoin-way of hashing a block header
 def fastHashBlock(blockHeaderBinary:str):
-    hash1 = sha256(blockHeaderBinary:str)
-    hash2 = sha256(hash1)
-    res = flip32Bytes(hash2)
-    return(res)
+    return(flip32Bytes(sha256(sha256(blockHeaderBinary:str))))
 
 
 # an owner may transfer/change ownership
@@ -230,13 +226,13 @@ def setOwner(newOwner):
 
 # get the parent of '$blockHash'
 macro getPrevBlock($blockHash):
-    $tmpStr = load(self.block[$blockHash]._blockHeader[0], chars=80)
+    $tmpStr = load(self.block[$blockHash]._blockHeader[0], chars=36)  # don't need all 80bytes
     getBytesLE($tmpStr, 32, 4)
 
 
 # get the merkle root of '$blockHash'
 macro getMerkleRoot($blockHash):
-    $tmpStr = load(self.block[$blockHash]._blockHeader[0], chars=80)
+    $tmpStr = load(self.block[$blockHash]._blockHeader[0], chars=68)  # don't need all 80bytes
     getBytesLE($tmpStr, 32, 36)
 
 
@@ -264,26 +260,51 @@ macro getBytesLE($inStr, $size, $offset):
 macro targetFromBits($bits):
     $exp = div($bits, 0x1000000)  # 2^24
     $mant = $bits & 0xffffff
-    $target = $mant * 256^($exp - 3)
-    $target
+    $mant * 256^($exp - 3)
 
 
 # Bitcoin-way merkle parent of transaction hashes $tx1 and $tx2
 macro concatHash($tx1, $tx2):
-    $left = flip32Bytes($tx1)
-    $right = flip32Bytes($tx2)
-
-    $hash1 = sha256([$left, $right], chars=64)
-    $hash2 = sha256($hash1)
-
-    flip32Bytes($hash2)
+    with $x = ~alloc(64):
+        ~mstore($x, flip32Bytes($tx1))
+        ~mstore($x + 32, flip32Bytes($tx2))
+        flip32Bytes(sha256(sha256($x, chars=64)))
 
 
-# reverse 32 bytes given by '$a'
-macro flip32Bytes($a):
-    $o = 0
-    with $i = 0:
-        while $i < 32:
-            mstore8(ref($o) + $i, byte(31 - $i, $a))
-            $i += 1
-    $o
+# reverse 32 bytes given by '$b32'
+macro flip32Bytes($b32):
+    with $a = $b32:  # important to force $a to only be examined once below
+        $o = 0
+        mstore8(ref($o), byte(31, $a))
+        mstore8(ref($o) + 1,  byte(30, $a))
+        mstore8(ref($o) + 2,  byte(29, $a))
+        mstore8(ref($o) + 3,  byte(28, $a))
+        mstore8(ref($o) + 4,  byte(27, $a))
+        mstore8(ref($o) + 5,  byte(26, $a))
+        mstore8(ref($o) + 6,  byte(25, $a))
+        mstore8(ref($o) + 7,  byte(24, $a))
+        mstore8(ref($o) + 8,  byte(23, $a))
+        mstore8(ref($o) + 9,  byte(22, $a))
+        mstore8(ref($o) + 10, byte(21, $a))
+        mstore8(ref($o) + 11, byte(20, $a))
+        mstore8(ref($o) + 12, byte(19, $a))
+        mstore8(ref($o) + 13, byte(18, $a))
+        mstore8(ref($o) + 14, byte(17, $a))
+        mstore8(ref($o) + 15, byte(16, $a))
+        mstore8(ref($o) + 16, byte(15, $a))
+        mstore8(ref($o) + 17, byte(14, $a))
+        mstore8(ref($o) + 18, byte(13, $a))
+        mstore8(ref($o) + 19, byte(12, $a))
+        mstore8(ref($o) + 20, byte(11, $a))
+        mstore8(ref($o) + 21, byte(10, $a))
+        mstore8(ref($o) + 22, byte(9, $a))
+        mstore8(ref($o) + 23, byte(8, $a))
+        mstore8(ref($o) + 24, byte(7, $a))
+        mstore8(ref($o) + 25, byte(6, $a))
+        mstore8(ref($o) + 26, byte(5, $a))
+        mstore8(ref($o) + 27, byte(4, $a))
+        mstore8(ref($o) + 28, byte(3, $a))
+        mstore8(ref($o) + 29, byte(2, $a))
+        mstore8(ref($o) + 30, byte(1, $a))
+        mstore8(ref($o) + 31, byte(0, $a))
+        $o
