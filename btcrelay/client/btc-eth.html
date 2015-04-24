@@ -65,23 +65,26 @@ var btcproof = require('btcproof');
 
 var gRelayAddr;
 var gExchangeContractAddr;
-var gCpp;
+var gBtcTestnet;
+var gOurBtcAddr;
 
-// gCpp = true;
-// if (gCpp) {
-//   gRelayAddr = '0x02f653a05dc68a7df9a74c8eb9a50a15e98bed6e';  // CPP
-//   gExchangeContractAddr = '0x205215f022af4950618730bcfae161b28397bc41'; // CPP
-// }
-// else {
-  gRelayAddr = '0x54d39c26e038848290c30cf78de281f0ba65027e';  // Go
+
+gBtcTestnet = true;
+if (gBtcTestnet) {
+  gRelayAddr = '0xba164d1e85526bd5e27fd15ad14b0eae91c45a93';
+  gExchangeContractAddr = '0x316658d737a11a0e9b14929486dcd9a56c7b5376';
+
+  gOurBtcAddr = 'mvBWJFv8Uc84YEyZKBm8HZQ7qrvmBiH7zR';
+}
+else {
+  gRelayAddr = '0x54d39c26e038848290c30cf78de281f0ba65027e';
   gExchangeContractAddr = '0x0304245e93ee2f0a90f2794233d491ec1c517ca1';
   // gExchangeContractAddr = '0x95e32f338d28bed978b3ef948bd73ec20d1eb60a'; // Go
-// }
 
-
-var gOurBtcAddr = '61cf5af7bb84348df3fd695672e53c7d5b3f3db9'  // tx1 of block300K
-// var gOurBtcAddr = '29a158767437cd82ccf4bd3e34ecd16c267fc363'  // tx3 of block300K
-// var gOurBtcAddr = 'c398efa9c392ba6013c5e04ee729755ef7f58b32'  // tx1 of block100K
+  gOurBtcAddr = '61cf5af7bb84348df3fd695672e53c7d5b3f3db9'  // tx1 of block300K
+  // var gOurBtcAddr = '29a158767437cd82ccf4bd3e34ecd16c267fc363'  // tx3 of block300K
+  // var gOurBtcAddr = 'c398efa9c392ba6013c5e04ee729755ef7f58b32'  // tx1 of block100K
+}
 
 var gFromAccount = '0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826';
 
@@ -156,7 +159,7 @@ function c22allContract() {
 }
 
 
-
+// CPP apparently can call watch() multiple times and doesn't protect against duplicates
 web3.eth.filter({'address': gExchangeContractAddr}).watch(function(err, res) {
   if (err) {
     console.log('@@@ ERROR gExchangeContractAddr filter: ', err)
@@ -164,6 +167,31 @@ web3.eth.filter({'address': gExchangeContractAddr}).watch(function(err, res) {
   }
   console.log('@@@ gExchangeContractAddr filter')
   console.log(res)
+
+  var contractReturnData = res.data;
+
+  if (web3.toDecimal(contractReturnData) === 1) {
+    document.getElementById('result').innerText = 'ether sent.  Check your address!';
+  }
+  else {
+    document.getElementById('result').innerText = 'Bitcoin Transaction not accepted.  Make sure you have sent enough Bitcoins.';
+  }
+});
+
+// CPP apparently can call watch() multiple times and doesn't protect against duplicates
+web3.eth.filter({'address': gRelayAddr}).watch(function(err, res) {
+  if (err) {
+    console.log('@@@ ERROR gRelayAddr filter: ', err)
+    return;
+  }
+  console.log('@@@ gRelayAddr filter')
+  console.log(res)
+
+  var logDataFromRelay = res.data;
+
+  if (web3.toDecimal(logDataFromRelay) === -9999) {
+    document.getElementById('result').innerText = 'Bitcoin Transaction not accepted.  Wait for more confirmations or send your Bitcoins again.';
+  }
 });
 
 
@@ -247,21 +275,68 @@ function callContract() {
   var exchangeContractAddr = new BigNumber(gExchangeContractAddr);
 
   var startTime = Date.now();
-  var sendObj = contract.sendTransaction({from:gFromAccount, gas: 3000000}, function(err, result) {
-      var res = result;
-      var endTime = Date.now();
-      var durationSec = (endTime - startTime) / 1000;
-      console.log('@@@@ relayTx res: ', res, ' duration: ', durationSec)
-      document.getElementById('result').innerText = res.toString(10) + "    " + durationSec+ "secs";
-  });
-
+  var sendObj = contract.sendTransaction({from:gFromAccount, gas: 3000000});
   sendObj.relayTx(txHex, txHash, gMerkleProof.txIndex, merkleSibling, txBlockHash, exchangeContractAddr)
+  document.getElementById('result').innerText = 'Ethereum transaction is in progress...'
 }
 
 
+function getTxInfo() {
+  var txid = $('#transHex').val();
+  console.log('@@@ txid: ', txid);
+
+  var urlJsonTx;
+  if (gBtcTestnet) {
+      urlJsonTx = "https://tbtc.blockr.io/api/v1/tx/raw/" + txid;
+  }
+  else {
+      urlJsonTx = "https://btc.blockr.io/api/v1/tx/raw/" + txid;
+  }
+  $.getJSON(urlJsonTx, function(data) {
+      console.log('@@@ data: ', data)
+
+      gRawTx = data.data.tx.hex;
+      $('#txHexText').val(gRawTx);
+
+      var blockNum = data.data.tx.blockhash; // blockr does not easily provide block height
+      $('#txBlockNum').text('n/a for blockr.io');
+      // $('#txBlockNum').text(blockNum);
+
+      var blockInfoUrl;
+      if (gBtcTestnet) {
+          blockInfoUrl = "http://tbtc.blockr.io/api/v1/block/raw/"+blockNum;
+      }
+      else {
+          blockInfoUrl = "http://btc.blockr.io/api/v1/block/raw/"+blockNum;
+      }
+      $.getJSON(blockInfoUrl, function(res) {
+          console.log('@@@ res: ', res)
+
+          gBlockHashOfTx = res.data.hash;
+          $('#txBlockHash').text(gBlockHashOfTx)
+
+          var txIndex;
+          for (var key in res.data.tx) {
+            if (res.data.tx[key] == txid) {
+              txIndex = key;
+              break;
+            }
+          }
+
+          // var txIndex = Object.keys(res.data.tx).indexOf(txid);
+          console.log('@@@@ txIndex: ', txIndex)
+
+          gMerkleProof = btcproof.getProof(res.data.tx, txIndex);
+          console.log('@@@ mp: ', gMerkleProof)
+          $('#mProof').val(JSON.stringify(gMerkleProof));
+      })
+
+  })
+}
+
 
 // fff2525b8931402dd09222c50775608f75787bd2b87e56995a7bdd30f79702c4
-function getTxInfo() {
+function bci_getTxInfo() {
   var txid = $('#transHex').val();
   console.log('@@@ txid: ', txid);
 
