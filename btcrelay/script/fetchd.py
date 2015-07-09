@@ -192,16 +192,13 @@ def storeHeaders(bhBinary, chunkSize):
     #
     # store the headers
     #
-    wait = True
-    from_count = instance.transaction_count(defaultBlock='pending')
-    if wait:
-        from_block = instance.last_block()
 
-    instance.transact(instance.relayContract, sig=sig,
+    txHash = instance.transact(instance.relayContract, sig=sig,
         data=data, gas=gas, gas_price=instance.gasPrice, value=value)
 
     instance.wait_for_transaction(
-        from_count=from_count,
+        transactionHash=txHash,
+        retry=True,
         #verbose=(True if api_config.get('misc', 'verbosity') > 1 else False))
         verbose=True)
 
@@ -223,13 +220,6 @@ def storeHeaders(bhBinary, chunkSize):
     #         #verbose=(True if api_config.get('misc', 'verbosity') > 1 else False))
     #         verbose=True)
 
-
-    if wait:
-        for i in range(instance.numBlocksToWait):
-            instance.wait_for_next_block(from_block=from_block,
-                #verbose=(True if api_config.get('misc', 'verbosity') > 1 else False))
-                verbose=True)
-            from_block = instance.last_block()
 
     chainHead = getBlockchainHead()
     expHead = int(bin_dbl_sha256(bhBinary[-80:])[::-1].encode('hex'), 16)
