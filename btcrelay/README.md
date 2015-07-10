@@ -1,3 +1,5 @@
+This is legacy.  Get btcrelay from [https://github.com/ethereum/btcrelay]()
+
 Requirements
 ------------
 * [Serpent](https://github.com/ethereum/serpent)
