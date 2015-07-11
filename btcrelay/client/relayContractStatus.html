@@ -16,27 +16,62 @@
   var web3 = require('web3');
   web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
 
-  $(function() {
-    var relayAddr = '0x61f836ebad27a6a3cbb5c070ca6b99925eabd9a3';
+  var heightPerRelay;
 
+  $(function() {
+    var relayAddr = web3.eth.namereg.addr('btcrelay');
     $('#relayAddr').text(relayAddr);
 
-    var bethAddress = relayAddr;
-    var abiToUse = btcRelayAbi;
-    var RelayContract = web3.eth.contract(abiToUse);
-    var contract = RelayContract.at(bethAddress);
-    // console.log('@@@@ contract: ', contract)
+    updateBCI();
+    updateBlockr();
 
+    var RelayContract = web3.eth.contract(btcRelayAbi);  // see ./js/btcRelayAbi.js
+    var contract = RelayContract.at(relayAddr);
 
-    var height = contract.getLastBlockHeight.call();
-    $('#latestBlockHeight').text(height);
+    heightPerRelay = contract.getLastBlockHeight.call().toString();
+    $('#latestBlockHeight').text(heightPerRelay);
 
     var headHash = contract.getBlockchainHead.call();
-    $('#latestBlockHash').text(web3.toHex(headHash));
+    $('#latestBlockHash').text(formatHash(headHash));
 
-    var headScore = contract.getCumulativeDifficulty.call();
-    $('#latestBlockScore').text(web3.toBigNumber(headScore).toString(10));
+    setTimeout(checkHeights, 1000);
   });
+
+  function updateBCI() {
+    // 2 calls needed since https://blockchain.info/latestblock is missing CORS
+    $.getJSON('https://blockchain.info/q/getblockcount?cors=true', function(data) {
+      $('#bciBlockHeight').text(data);
+    });
+
+    // https://github.com/blockchain/api-v1-client-python/issues/17
+    // $.getJSON('https://blockchain.info/q/latesthash?cors=true', function(data) {
+    //   $('#bciBlockHash').text(data);
+    // });
+  }
+
+  function updateBlockr() {
+    $.getJSON('http://btc.blockr.io/api/v1/block/info/last', function(data) {
+      $('#blockrBlockHeight').text(data.data.nb);
+    });
+  }
+
+  function checkHeights() {
+    var bciHeight = $('#bciBlockHeight').text();
+    var blockrHeight = $('#blockrBlockHeight').text();
+    if (!bciHeight || !blockrHeight ||
+      heightPerRelay === bciHeight || heightPerRelay === blockrHeight) {
+        $('#warnSync').hide();
+    }
+    else {
+      $('#nodeBlockNum').text(web3.eth.blockNumber);
+      $('#warnSync').show();
+    }
+  }
+
+  function formatHash(bnHash) {
+    var hash = bnHash.toString(16);
+    return Array(64 - hash.length + 1).join('0') + hash;
+  }
 
   </script>
 </head>
@@ -47,15 +82,21 @@
       <img src="./images/ethereum-logo-small.png"/>
     </div>
 
-    <h2>Ethereum Bitcoin Relay Contract Status</h2>
-
     <div class="jumbotron">
-      <h3>Address: <strong id="relayAddr"></strong></h3>
-      <h3>Latest Block#: <strong id="latestBlockHeight"></strong></h3>
+      <h2>Ethereum Bitcoin Relay Contract Status</h2>
+      <h3>btcrelay: <strong id="relayAddr"></strong></h3>
       <h3>Latest Block Hash: <strong id="latestBlockHash"></strong></h3>
-      <h3>Latest Block Cumulative Difficulty: <strong id="latestBlockScore"></strong></h3>
-      <br>
+      <div>
+        <h3 style="display: inline-block">Latest Block#: <strong id="latestBlockHeight"></strong></h3>
+        <div style="display: inline-block; margin-left:3em"><a href="https://blockchain.info" target="_">blockchain.info</a>: <strong id="bciBlockHeight"></strong></div>
+        <span><a href="https://btc.blockr.io" target="_">btc.blockr.io</a>: <strong id="blockrBlockHeight"></strong></span>
+      </div>
+      <h3 id="warnSync" style="display: none">Your Ethereum node may not be fully synced: <span id=nodeBlockNum></span>.  Check <a href="https://stats.ethdev.com" target="_">stats</a>
+        for the latest blocks.
+      </h3>
     </div>
+
+    <!-- <h3>blockchain.info Latest Block Hash: <strong id="bciBlockHash"></strong></h3> -->
 
     <div class="footer-logo">
       <img src="./images/ETH_DEV_LOGO_LARGE.svg"/>
